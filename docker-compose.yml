@@ -1,0 +1,52 @@
+services:
+  # The Memory: Database
+  db:
+    image: postgres:15
+    container_name: standard_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # You can change this later
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+
+  # The Brain: Automation (n8n)
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: standard_brain
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./flows:/home/node/.n8n
+    depends_on:
+      - db
+
+  # The Screen: Tablet UI (Appsmith)
+  appsmith:
+    image: appsmith/appsmith-ce
+    container_name: standard_terminal
+    restart: always
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - ./appsmith-data:/appsmith-stacks
+
+  # The Helper: Python Worker
+  worker:
+    build: ./worker
+    container_name: standard_helper
+    restart: always
+    volumes:
+      - ./worker:/app
+    depends_on:
+      - db
