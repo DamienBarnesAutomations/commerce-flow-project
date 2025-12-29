@@ -1,2 +1,7 @@
-.env
+# Docker data volumes
+appsmith-data/
 db-data/
+flows/
+
+# Environment variables
+.env
