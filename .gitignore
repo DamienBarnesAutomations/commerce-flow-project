@@ -5,3 +5,4 @@ flows/
 
 # Environment variables
 .env
+public/images/*

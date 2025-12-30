@@ -33,8 +33,13 @@ services:
       - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
       - DB_POSTGRESDB_USER=${POSTGRES_USER}
       - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - TELEGRAM_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - N8N_PROTOCOL=https
     volumes:
       - ./flows:/home/node/.n8n
+      - ./public/images:/home/node/.n8n-files/public/images
+      - ./n8n-workflows:/home/node/.n8n-files/workflows
     depends_on:
       db:
         condition: service_healthy
