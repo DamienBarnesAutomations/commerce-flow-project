@@ -6,6 +6,7 @@ const imageBase = import.meta.env.VITE_IMAGE_BASE_URL;
 const recordSalesWebhook = import.meta.env.VITE_RECORD_SALES_WEBHOOK;
 const dailySalesWebhook = import.meta.env.VITE_DAILY_SALES_WEBHOOK;
 const currency = import.meta.env.VITE_CURRENCY;
+const appTitle = import.meta.env.VITE_APP_TITLE;
 
 export const usePosStore = defineStore('pos', {
   state: () => ({
@@ -18,12 +19,17 @@ export const usePosStore = defineStore('pos', {
     currency: currency,
     expandedTransactions: [],
     todaySales: [],
+    appTitle: appTitle,
   }),
   
   getters: {
     cartTotal: (state) => state.cart.reduce((total, item) => total + (item.price * item.quantity), 0),
     cartCount: (state) => state.cart.reduce((count, item) => count + item.quantity, 0), 
-    dayTotal: (state) => { return state.todaySales.reduce((sum, sale) => sum + Number(sale.total_price), 0);},
+    dayTotal: (state) => { 
+        if (!state.todaySales || !Array.isArray(state.todaySales)) {
+            return 0;
+        }
+        return state.todaySales.reduce((sum, sale) => sum + Number(sale.total_price), 0);},
     groupedSales: (state) => {
         // Safety Guard: If todaySales is null or undefined, return an empty array
     if (!state.todaySales || !Array.isArray(state.todaySales)) {

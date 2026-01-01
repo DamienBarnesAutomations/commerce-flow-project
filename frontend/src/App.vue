@@ -17,7 +17,7 @@ onMounted(() => store.fetchProducts())
             alt="Precious Place Logo" 
             class="w-40 h-40 object-contain invert" 
           />
-          <h1 class="text-2xl font-bold tracking-tight">Precious Place POS</h1>
+          <h1 class="text-2xl font-bold tracking-tight">{{store.appTitle}}</h1>
         </div>
         <button 
           @click="store.fetchDailySales()" 
@@ -122,6 +122,13 @@ onMounted(() => store.fetchProducts())
         </div>
 
         <div class="flex-1 overflow-y-auto p-6 space-y-3">
+          <div v-if="store.groupedSales.length === 0" class="flex flex-col items-center justify-center h-64 text-zinc-500 border-2 border-dashed border-zinc-800 rounded-3xl">
+            <svg class="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <p class="font-medium">No transactions found for today.</p>
+            <p class="text-xs opacity-60">Try completing a checkout first!</p>
+          </div>
           <div v-for="group in store.groupedSales" :key="group.id" 
               class="border border-zinc-800 rounded-2xl bg-zinc-950/40 transition-all overflow-hidden">
             
