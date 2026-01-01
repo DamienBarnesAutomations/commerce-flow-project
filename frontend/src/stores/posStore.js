@@ -15,13 +15,35 @@ export const usePosStore = defineStore('pos', {
     imageBaseUrl: imageBase,
     showSuccessToast: false,
     logo: imageBase + "precious_place_logo-removebg.png",
-    currency: currency
+    currency: currency,
+    expandedTransactions: [],
+    todaySales: [],
   }),
   
   getters: {
     cartTotal: (state) => state.cart.reduce((total, item) => total + (item.price * item.quantity), 0),
     cartCount: (state) => state.cart.reduce((count, item) => count + item.quantity, 0), 
-    dayTotal: (state) => { return state.todaySales.reduce((sum, sale) => sum + Number(sale.total_price), 0);
+    dayTotal: (state) => { return state.todaySales.reduce((sum, sale) => sum + Number(sale.total_price), 0);},
+    groupedSales: (state) => {
+        // Safety Guard: If todaySales is null or undefined, return an empty array
+    if (!state.todaySales || !Array.isArray(state.todaySales)) {
+      return [];
+    }
+    const groups = {};
+    state.todaySales.forEach(item => {
+      if (!groups[item.transaction_id]) {
+        groups[item.transaction_id] = {
+          id: item.transaction_id,
+          time: item.created_at,
+          items: [],
+          total: 0
+        };
+      }
+      groups[item.transaction_id].items.push(item);
+      groups[item.transaction_id].total += Number(item.total_price);
+    });
+    // Return as array sorted by most recent
+    return Object.values(groups).sort((a, b) => new Date(b.time) - new Date(a.time));
   }
   },
 
@@ -92,6 +114,7 @@ export const usePosStore = defineStore('pos', {
         }
     },
     async fetchDailySales() {
+        this.expandedTransactions = [];
         try {
             const response = await axios.get(dailySalesWebhook);
             this.todaySales = response.data;
@@ -99,7 +122,15 @@ export const usePosStore = defineStore('pos', {
         } catch (error) {
             console.error("Could not load daily sales", error);
         }
-    }
+    },
+    toggleTransaction(id) {
+        if (this.expandedTransactions.includes(id)) {
+            this.expandedTransactions = this.expandedTransactions.filter(itemId => itemId !== id);
+        } else {
+        // If it's not there, add it (expand)
+            this.expandedTransactions.push(id);
+        }
+    },
   },
   persist: true // This magical line saves your cart to LocalStorage automatically!
 })

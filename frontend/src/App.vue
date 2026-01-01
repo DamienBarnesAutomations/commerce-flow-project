@@ -19,15 +19,16 @@ onMounted(() => store.fetchProducts())
           />
           <h1 class="text-2xl font-bold tracking-tight">Precious Place POS</h1>
         </div>
+        <button 
+          @click="store.fetchDailySales()" 
+          class="p-2 hover:bg-zinc-800 rounded-full transition-colors group"
+        >
+          <svg class="w-6 h-6 text-zinc-500 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </button>
       </header>
-      <button 
-        @click="store.fetchDailySales()" 
-        class="p-2 hover:bg-zinc-800 rounded-full transition-colors group"
-      >
-        <svg class="w-6 h-6 text-zinc-500 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-        </svg>
-      </button>
+      
 
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto pr-2 custom-scrollbar">
         <div 
@@ -107,39 +108,62 @@ onMounted(() => store.fetchProducts())
         </div>
       </div>
     </Transition>
-    <div v-if="store.showSalesModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div class="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl flex flex-col max-h-[80vh]">
+    <div v-if="store.showSalesModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+      <div class="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-3xl flex flex-col max-h-[85vh] shadow-2xl">
         
         <div class="p-6 border-b border-zinc-800 flex justify-between items-center">
-          <h2 class="text-xl font-bold">Today's Sales Log</h2>
-          <button @click="store.showSalesModal = false" class="text-zinc-400 hover:text-white text-2xl">&times;</button>
+          <div>
+            <h2 class="text-xl font-bold text-white leading-none">Daily Sales Activity</h2>
+            <p class="text-zinc-500 text-sm mt-1">Today's transactions and breakdowns</p>
+          </div>
+          <button @click="store.showSalesModal = false" class="p-2 hover:bg-zinc-800 rounded-xl text-zinc-400 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6">
-          <table class="w-full text-left">
-            <thead class="text-zinc-500 text-sm uppercase tracking-wider">
-              <tr>
-                <th class="pb-4">Time</th>
-                <th class="pb-4">Item</th>
-                <th class="pb-4 text-right">Qty</th>
-                <th class="pb-4 text-right">Price</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-800">
-              <tr v-for="sale in store.todaySales" :key="sale.id" class="text-sm">
-                <td class="py-3 text-zinc-500">{{ new Date(sale.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}</td>
-                <td class="py-3 font-medium">{{ sale.name }}</td>
-                <td class="py-3 text-right">{{ sale.quantity }}</td>
-                <td class="py-3 text-right font-mono">{{store.currency}}{{ Number(sale.total_price).toFixed(2) }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="flex-1 overflow-y-auto p-6 space-y-3">
+          <div v-for="group in store.groupedSales" :key="group.id" 
+              class="border border-zinc-800 rounded-2xl bg-zinc-950/40 transition-all overflow-hidden">
+            
+            <div @click="store.toggleTransaction(group.id)" 
+                class="p-4 flex justify-between items-center cursor-pointer hover:bg-zinc-800/50 select-none">
+              <div class="flex items-center gap-4">
+                <div class="text-zinc-500 font-mono text-xs bg-zinc-900 px-2 py-1 rounded">
+                  {{ new Date(group.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}
+                </div>
+                <span class="font-semibold text-zinc-200 uppercase tracking-wide text-sm">Order #{{ group.id }}</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <span class="font-bold text-emerald-400 font-mono text-lg"> {{ store.currency }} {{ group.total.toFixed(2) }}</span>
+                <svg :class="{'rotate-180': store.expandedTransactions?.includes(group.id)}" 
+                    class="w-5 h-5 text-zinc-600 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 9l-7 7-7-7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div v-if="store.expandedTransactions?.includes(group.id)" 
+                class="bg-black/30 border-t border-zinc-800 p-4 space-y-2">
+              <div v-for="item in group.items" :key="item.id" class="flex justify-between text-sm animate-in fade-in slide-in-from-top-1">
+                <div class="flex gap-3 text-zinc-300">
+                  <span class="text-zinc-600 font-bold w-4">{{ item.quantity }}x</span>
+                  <span>{{ item.name }}</span>
+                </div>
+                <span class="text-zinc-500 font-mono"> {{ store.currency }} {{ Number(item.total_price).toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="p-6 border-t border-zinc-800 bg-zinc-900/50 rounded-b-2xl">
-          <div class="flex justify-between items-center">
-            <span class="text-zinc-400 font-medium">Daily Cumulative Total</span>
-            <span class="text-2xl font-bold text-emerald-400 font-mono">{{store.currency}}{{ store.dayTotal.toFixed(2) }}</span>
+        <div class="p-6 border-t border-zinc-800 bg-zinc-950/80 rounded-b-3xl">
+          <div class="flex justify-between items-end">
+            <div>
+              <p class="text-zinc-500 text-xs font-bold uppercase tracking-widest">Grand Total</p>
+              <p class="text-3xl font-black text-emerald-500 font-mono mt-1">{{ store.currency }} {{ store.dayTotal.toFixed(2) }}</p>
+            </div>
+            <button @click="store.showSalesModal = false" class="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold text-sm transition-colors">
+              CLOSE
+            </button>
           </div>
         </div>
       </div>
