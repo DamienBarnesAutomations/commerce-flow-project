@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS products (
     price NUMERIC(10, 2),
     img_url TEXT,
     description TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT true
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
