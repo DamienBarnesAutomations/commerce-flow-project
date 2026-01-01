@@ -62,17 +62,22 @@ services:
     volumes:
       - ./public/images:/usr/share/nginx/html/images:ro # 'ro' means read-only for safety
 
-  pos-app:
-    build: ./pos_app
-    container_name: pos_app
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pos_frontend
     restart: always
     ports:
-      - "8501:8501"
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Prevents local node_modules from overwriting container ones
     environment:
-      - DB_NAME=${POSTGRES_DB}
-      - DB_USER=${POSTGRES_USER}
-      - DB_PASS=${POSTGRES_PASSWORD}
-      - DB_HOST=db
-      - IMAGE_BASE_URL=${IMAGE_BASE_URL}
+      - VITE_GET_PRODUCTS_WEBHOOK=${GET_PRODUCTS_WEBHOOK}
+      - VITE_IMAGE_BASE_URL=${IMAGE_BASE_URL}
+      - VITE_RECORD_SALES_WEBHOOK=${RECORD_SALES_WEBHOOK}
+      - VITE_DAILY_SALES_WEBHOOK=${DAILY_SALES_WEBHOOK}
+      - VITE_CURRENCY=${CURRENCY}
     depends_on:
-      - db
+      - n8n
