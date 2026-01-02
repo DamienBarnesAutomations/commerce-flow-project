@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS conversion_rates (
 CREATE TABLE IF NOT EXISTS recipes (
     recipe_id SERIAL PRIMARY KEY,
     recipe_name TEXT NOT NULL UNIQUE,
-    base_yield NUMERIC(10, 3) NOT NULL CHECK (base_yield > 0),
-    unit_id INTEGER NOT NULL, 
+    base_yield INTEGER NOT NULL CHECK (base_yield > 0),
+    unit_name TEXT NOT NULL, 
     instructions TEXT,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -74,7 +74,7 @@ CREATE INDEX IF NOT EXISTS idx_recipe_name ON recipes(recipe_name);
 -- 5. Table: recipe_components
 CREATE TABLE IF NOT EXISTS recipe_components (
     recipe_component_id SERIAL PRIMARY KEY,
-    recipe_id INTEGER NOT NULL REFERENCES recipes(recipe_id) ON DELETE CASCADE,
+    recipe_id INTEGER NOT NULL REFERENCES recipes(recipe_id) ON DELETE RESTRICT,
     ingredient_id INTEGER NOT NULL REFERENCES INGREDIENTS(ingredient_id) ON DELETE RESTRICT,
     quantity_needed NUMERIC (10, 3) NOT NULL CHECK (quantity_needed > 0),
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
