@@ -44,17 +44,6 @@ services:
       db:
         condition: service_healthy
 
-  # The Helper: Python Worker
-  worker:
-    build: ./worker
-    container_name: standard_helper
-    restart: always
-    volumes:
-      - ./worker:/app
-    depends_on:
-      db:
-        condition: service_healthy
-  
   image_server:
     image: nginx:alpine
     ports:
@@ -83,3 +72,4 @@ services:
       - VITE_APP_ICON=${VITE_APP_ICON}
     depends_on:
       - n8n
+      - image_server
