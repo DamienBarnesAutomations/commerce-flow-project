@@ -73,3 +73,5 @@ services:
     depends_on:
       - n8n
       - image_server
+  
+    
