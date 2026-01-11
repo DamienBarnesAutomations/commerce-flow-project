@@ -2,6 +2,7 @@
 appsmith-data/
 db-data/
 flows/
+dev/
 
 # Environment variables
 .env
