@@ -5,8 +5,8 @@ services:
     container_name: duckdns
     restart: always
     environment:
-      - SUBDOMAINS=preciousplaceanu        # e.g., if you have my-pos.duckdns.org, put 'my-pos'
-      - TOKEN=0273c071-9dda-41f0-a1a3-a6d04d0cbf43        # Get this from duckdns.org
+      - SUBDOMAINS=${SUB_DOMAIN}        # e.g., if you have my-pos.duckdns.org, put 'my-pos'
+      - TOKEN=${DNS_TOKEN}        # Get this from duckdns.org
       - LOG_FILE=false
   
   nginx-proxy:
@@ -62,12 +62,19 @@ services:
     restart: always
     environment:
       - N8N_PROTOCOL=https
-      - N8N_HOST=preciousplaceanu.duckdns.org
+      - N8N_HOST=${DOMAIN_OR_IP}
       - N8N_PATH=/n8n/
-      - WEBHOOK_URL=https://preciousplaceanu.duckdns.org/n8n/
-      - N8N_EDITOR_BASE_URL=https://preciousplaceanu.duckdns.org/n8n/
+      - WEBHOOK_URL=https://${DOMAIN_OR_IP}/n8n/
+      - N8N_EDITOR_BASE_URL=https://${DOMAIN_OR_IP}/n8n/
       # Adding this helps n8n understand it's behind 1 proxy layer (NPM)
-      - N8N_PROXY_HOPS=1 
+      - N8N_PROXY_HOPS=1
+    volumes:
+      - ./flows:/home/node/.n8n
+      - ./public/images:/home/node/.n8n-files/public/images
+      - ./n8n-workflows:/home/node/.n8n-files/workflows
+    depends_on:
+      db:
+        condition: service_healthy 
 
   image_server:
     image: nginx:alpine
