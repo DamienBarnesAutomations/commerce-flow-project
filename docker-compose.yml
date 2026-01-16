@@ -1,4 +1,26 @@
 services:
+
+  duckdns:
+    image: lscr.io/linuxserver/duckdns:latest
+    container_name: duckdns
+    restart: always
+    environment:
+      - SUBDOMAINS=preciousplaceanu        # e.g., if you have my-pos.duckdns.org, put 'my-pos'
+      - TOKEN=0273c071-9dda-41f0-a1a3-a6d04d0cbf43        # Get this from duckdns.org
+      - LOG_FILE=false
+  
+  nginx-proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - '80:80'    # HTTP
+      - '443:443'  # HTTPS
+      - '81:81'    # Admin UI
+    volumes:
+      - ./npm-data:/data
+      - ./npm-letsencrypt:/etc/letsencrypt
+
   # The Memory: Database
   db:
     image: postgres:15
@@ -11,38 +33,41 @@ services:
     volumes:
       - ./postgres-init:/docker-entrypoint-initdb.d
       - ./db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    #ports:
+     # - "5432:5432"
+    expose:
+      - "5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
+  adminer:
+    image: adminer:latest
+    container_name: adminer_pro
+    restart: always
+    ports:
+      - "8083:8080"  # External 8083 maps to Adminer internal 8080
+    environment:
+      - ADMINER_DESIGN=pepa-linha # Clean theme for SQL crafting
+      - ADMINER_DEFAULT_SERVER=db  # Pre-fills the 'Server' field with your DB service name
+    depends_on:
+      db:
+        condition: service_healthy
 
   # The Brain: Automation (n8n)
   n8n:
     image: n8nio/n8n:latest
     container_name: standard_brain
     restart: always
-    ports:
-      - "5678:5678"
     environment:
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=db
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
-      - DB_POSTGRESDB_USER=${POSTGRES_USER}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
-      - TELEGRAM_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - WEBHOOK_URL=${WEBHOOK_URL}
       - N8N_PROTOCOL=https
-    volumes:
-      - ./flows:/home/node/.n8n
-      - ./public/images:/home/node/.n8n-files/public/images
-      - ./n8n-workflows:/home/node/.n8n-files/workflows
-    depends_on:
-      db:
-        condition: service_healthy
+      - N8N_HOST=preciousplaceanu.duckdns.org
+      - N8N_PATH=/n8n/
+      - WEBHOOK_URL=https://preciousplaceanu.duckdns.org/n8n/
+      - N8N_EDITOR_BASE_URL=https://preciousplaceanu.duckdns.org/n8n/
+      # Adding this helps n8n understand it's behind 1 proxy layer (NPM)
+      - N8N_PROXY_HOPS=1 
 
   image_server:
     image: nginx:alpine
@@ -74,4 +99,7 @@ services:
       - n8n
       - image_server
   
-    
+  
+
+
+ 

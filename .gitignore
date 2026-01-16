@@ -7,3 +7,7 @@ dev/
 # Environment variables
 .env
 public/images/*
+npm-data/*
+npm-letsencrypt/*
+certs/*
+nginx-conf/*

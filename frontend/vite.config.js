@@ -8,6 +8,9 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
+    allowedHosts: [
+      'preciousplaceanu.duckdns.org'
+    ],
     watch: {
       usePolling: true,
     },
