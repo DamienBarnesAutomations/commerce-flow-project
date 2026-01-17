@@ -102,6 +102,7 @@ services:
       - VITE_CURRENCY=${CURRENCY}
       - VITE_APP_TITLE=${VITE_APP_TITLE}
       - VITE_APP_ICON=${VITE_APP_ICON}
+      - VITE_LOGO=${VITE_LOGO}
     depends_on:
       - n8n
       - image_server

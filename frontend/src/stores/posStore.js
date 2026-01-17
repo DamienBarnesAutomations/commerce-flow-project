@@ -3,6 +3,7 @@ import axios from 'axios'
 
 const getProductsWebhook = import.meta.env.VITE_GET_PRODUCTS_WEBHOOK;
 const imageBase = import.meta.env.VITE_IMAGE_BASE_URL;
+const logo = import.meta.env.VITE_LOGO;
 const recordSalesWebhook = import.meta.env.VITE_RECORD_SALES_WEBHOOK;
 const dailySalesWebhook = import.meta.env.VITE_DAILY_SALES_WEBHOOK;
 const currency = import.meta.env.VITE_CURRENCY;
