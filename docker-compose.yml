@@ -79,7 +79,7 @@ services:
   image_server:
     image: nginx:alpine
     ports:
-      - "8082:80"  # We'll use port 8081 to avoid conflicts
+      - "80"  # We'll use port 8081 to avoid conflicts
     volumes:
       - ./public/images:/usr/share/nginx/html/images:ro # 'ro' means read-only for safety
 
@@ -90,7 +90,7 @@ services:
     container_name: pos_frontend
     restart: always
     ports:
-      - "5173:5173"
+      - "5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules # Prevents local node_modules from overwriting container ones
@@ -106,6 +106,32 @@ services:
     depends_on:
       - n8n
       - image_server
+    
+  ledger_frontend:
+    build:
+      context: ./ledger-frontend
+      dockerfile: Dockerfile
+    container_name: ledger_frontend
+    restart: always
+    ports:
+      - "5174"   # external 5174 → internal Vite 5173
+    volumes:
+      - ./ledger-frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL_LEDGER}
+      - VITE_APP_TITLE=${VITE_APP_TITLE_LEDGER}
+      - VITE_POST_JOURNAL_ENTRIES_WEBHOOK=${VITE_POST_JOURNAL_ENTRIES_WEBHOOK}
+      - VITE_GET_JOURNAL_ENTRIES_WEBHOOK=${VITE_GET_JOURNAL_ENTRIES_WEBHOOK}
+      - VITE_GET_ACCOUNTS_WEBHOOK=${VITE_GET_ACCOUNTS_WEBHOOK}
+      - VITE_GENERAL_LEDGER_WEBHOOK=${VITE_GENERAL_LEDGER_WEBHOOK}
+      - VITE_TRIAL_BALANCE_WEBHOOK=${VITE_TRIAL_BALANCE_WEBHOOK}
+      - VITE_CREATE_ACCOUNT_WEBHOOK=${VITE_CREATE_ACCOUNT_WEBHOOK}
+    depends_on:
+      - n8n
+  
+  
+  
   
   
 

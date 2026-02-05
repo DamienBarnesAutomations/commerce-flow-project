@@ -1,0 +1,52 @@
+:root {
+  --bg: #020617;
+  --panel: #0f172a;
+  --border: #1e293b;
+  --text: #f1f5f9;
+  --muted: #64748b;
+  --accent: #10b981;
+  --danger: #ef4444;
+  --input-bg: #020617;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px; /* Smaller base font */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbars for a tighter look */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+/* Global Compact Components */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+input, select {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.4rem 0.5rem;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+}
+
+input:focus { border-color: var(--accent); }
+
+button {
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.1s ease;
+}
