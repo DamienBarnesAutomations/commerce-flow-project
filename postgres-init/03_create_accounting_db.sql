@@ -1,7 +1,20 @@
+--- Run as postgres superuser
 CREATE ROLE accounting_user LOGIN PASSWORD 'strong_password_here';
 CREATE DATABASE accounting OWNER accounting_user;
 
-\connect accounting
+-- Switch context to the new database
+\c accounting
+
+-- Standardize the public schema for the new owner
+ALTER SCHEMA public OWNER TO accounting_user;
+
+-- Grant explicit rights just to be safe
+GRANT ALL ON SCHEMA public TO accounting_user;
+
+-- Ensure future tables created by any user are accessible
+ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO accounting_user;
+
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

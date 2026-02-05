@@ -1,25 +1,20 @@
--- 2. The Products Table
-CREATE TABLE IF NOT EXISTS products (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
-    price NUMERIC(10, 2),
-    img_url TEXT,
-    description TEXT,
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+--- Run as postgres superuser
+CREATE ROLE cogs_user LOGIN PASSWORD 'strong_password_here';
+CREATE DATABASE cogs OWNER cogs_user;
 
-CREATE INDEX IF NOT EXISTS idx_products_name ON products(name);
+-- Switch context to the new database
+\c cogs
 
-CREATE TABLE IF NOT EXISTS sales (
-    id SERIAL PRIMARY KEY,
-    transaction_id INTEGER,
-    product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
-    quantity INTEGER DEFAULT 1,
-    price_at_sale DECIMAL(10, 2) NOT NULL,
-    total_price DECIMAL(10,2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Standardize the public schema for the new owner
+ALTER SCHEMA public OWNER TO cogs_user;
+
+-- Grant explicit rights just to be safe
+GRANT ALL ON SCHEMA public TO cogs_user;
+
+-- Ensure future tables created by any user are accessible
+ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO cogs_user;
+
 
 CREATE TABLE IF NOT EXISTS units (
     unit_id SERIAL PRIMARY KEY,
@@ -87,4 +82,32 @@ CREATE TABLE IF NOT EXISTS user_states (
     last_updated TIMESTAMP DEFAULT NOW()
 );
 
+INSERT INTO units (unit_name, unit_type) VALUES 
+('kg', 'WEIGHT'),
+('g', 'WEIGHT'),
+('L', 'VOLUME'),
+('ml', 'VOLUME'),
+('unit', 'COUNT'),
+('pcs', 'COUNT')
+ON CONFLICT (unit_name) DO NOTHING;
 
+-- 2. Insert Weight Conversions (g <-> kg)
+INSERT INTO conversion_rates (from_unit_id, to_unit_id, multiplier)
+VALUES 
+    ((SELECT unit_id FROM units WHERE unit_name = 'g'), (SELECT unit_id FROM units WHERE unit_name = 'kg'), 0.001),
+    ((SELECT unit_id FROM units WHERE unit_name = 'kg'), (SELECT unit_id FROM units WHERE unit_name = 'g'), 1000.0)
+ON CONFLICT DO NOTHING;
+
+-- 3. Insert Volume Conversions (ml <-> L)
+INSERT INTO conversion_rates (from_unit_id, to_unit_id, multiplier)
+VALUES 
+    ((SELECT unit_id FROM units WHERE unit_name = 'ml'), (SELECT unit_id FROM units WHERE unit_name = 'L'), 0.001),
+    ((SELECT unit_id FROM units WHERE unit_name = 'L'), (SELECT unit_id FROM units WHERE unit_name = 'ml'), 1000.0)
+ON CONFLICT DO NOTHING;
+
+-- 4. Insert Identity Conversions (unit <-> pcs)
+INSERT INTO conversion_rates (from_unit_id, to_unit_id, multiplier)
+VALUES 
+    ((SELECT unit_id FROM units WHERE unit_name = 'pcs'), (SELECT unit_id FROM units WHERE unit_name = 'unit'), 1.0),
+    ((SELECT unit_id FROM units WHERE unit_name = 'unit'), (SELECT unit_id FROM units WHERE unit_name = 'pcs'), 1.0)
+ON CONFLICT DO NOTHING;

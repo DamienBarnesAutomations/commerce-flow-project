@@ -62,12 +62,11 @@ services:
     restart: always
     environment:
       - N8N_PROTOCOL=https
-      - N8N_HOST=${DOMAIN_OR_IP}
-      - N8N_PATH=/n8n/
-      - WEBHOOK_URL=https://${DOMAIN_OR_IP}/n8n/
-      - N8N_EDITOR_BASE_URL=https://${DOMAIN_OR_IP}/n8n/
-      # Adding this helps n8n understand it's behind 1 proxy layer (NPM)
-      - N8N_PROXY_HOPS=1
+      - N8N_HOST=${N8N_DOMAIN}
+      - WEBHOOK_URL=https://${N8N_DOMAIN}/
+      # Tells n8n the SSL is handled by NPM
+      - N8N_SSL_TERMINATED=true 
+    # Use the service name 'db' as defined in your compose
     volumes:
       - ./flows:/home/node/.n8n
       - ./public/images:/home/node/.n8n-files/public/images
@@ -129,6 +128,8 @@ services:
       - VITE_CREATE_ACCOUNT_WEBHOOK=${VITE_CREATE_ACCOUNT_WEBHOOK}
     depends_on:
       - n8n
+  
+  
   
   
   

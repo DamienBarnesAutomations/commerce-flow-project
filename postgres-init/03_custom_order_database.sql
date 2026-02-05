@@ -1,3 +1,181 @@
+--- Run as postgres superuser
+CREATE ROLE custom_order_user LOGIN PASSWORD 'strong_password_here';
+CREATE DATABASE custom_order OWNER custom_order_user;
+
+-- Switch context to the new database
+\c custom_order
+
+-- Standardize the public schema for the new owner
+ALTER SCHEMA public OWNER TO custom_order_user;
+
+-- Grant explicit rights just to be safe
+GRANT ALL ON SCHEMA public TO custom_order_user;
+
+-- Ensure future tables created by any user are accessible
+ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO custom_order_user;
+
+CREATE TABLE IF NOT EXISTS chat_sessions (
+    customer_id VARCHAR(20) PRIMARY KEY,
+    current_state VARCHAR(50) DEFAULT 'START',
+    last_interaction TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_ai_prompt TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_sessions_customer_id ON chat_sessions(customer_id);
+
+CREATE TABLE order_status (
+    order_status_id VARCHAR(50) PRIMARY KEY, -- The "slug" used in code
+    display_name VARCHAR(100) NOT NULL, -- What the user sees
+    description TEXT, -- Internal or tooltip explanation
+    display_order INT DEFAULT 0, -- To keep lists sorted in the UI
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+CREATE TABLE IF NOT EXISTS custom_orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id VARCHAR(20) REFERENCES chat_sessions(customer_id),
+    selections JSONB DEFAULT '{}',
+    order_status_id VARCHAR(50) REFERENCES order_status(order_status_id) DEFAULT 'DRAFT', 
+    turn_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX idx_one_funnel_order_per_user 
+ON custom_orders (customer_id) 
+WHERE order_status_id IN ('DRAFT', 'AWAITING_APPROVAL');
+
+
+CREATE TABLE IF NOT EXISTS user_intents (
+    intent_id SERIAL PRIMARY KEY,
+    intent_key VARCHAR(50) UNIQUE NOT NULL,
+    classification_guide TEXT, -- Why the AI should pick this
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_intents_intent_key ON user_intents(intent_key);
+
+
+CREATE TABLE IF NOT EXISTS user_intents_config (
+    intent_key VARCHAR(50) REFERENCES user_intents (intent_key),
+    is_ai_action boolean DEFAULT FALSE,
+    response_template TEXT DEFAULT '',
+    sql_query TEXT DEFAULT ''
+);
+
+
+CREATE TABLE IF NOT EXISTS order_config (
+    field_id SERIAL PRIMARY KEY,
+    field_key VARCHAR(50) UNIQUE NOT NULL,
+    display_name VARCHAR(100) NOT NULL,
+    field_type VARCHAR(20) NOT NULL DEFAULT 'string', 
+    options JSONB DEFAULT '[]'::jsonb,
+    rules JSONB DEFAULT '[]'::jsonb,  -- visibility + validation + constraints
+    extraction_hint TEXT,
+    is_required BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
+    step_group INTEGER,
+    sort_order INTEGER DEFAULT 0
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_order_config_field_key ON order_config(field_key);
+
+-- Unified rules validation for new schema
+CREATE OR REPLACE FUNCTION validate_rules_array(rules jsonb) 
+RETURNS boolean AS $$
+DECLARE
+    rule jsonb;
+    rule_type text;
+    depends_on_field text;
+BEGIN
+    -- 1. NULL or empty array = valid
+    IF rules IS NULL OR rules = '[]'::jsonb THEN 
+        RETURN TRUE; 
+    END IF;
+
+    -- 2. MUST be array - no single objects allowed
+    IF jsonb_typeof(rules) != 'array' THEN
+        RETURN FALSE;
+    END IF;
+
+    -- 3. Validate each rule
+    FOR rule IN SELECT * FROM jsonb_array_elements(rules) LOOP
+        rule_type := rule->>'type';
+        
+        -- Must have type
+        IF rule_type IS NULL THEN RETURN FALSE; END IF;
+
+        -- VISIBILITY: requires depends_on, operator, value
+        IF rule_type = 'visibility' THEN
+            IF NOT (rule ? 'depends_on' AND rule ? 'operator' AND rule ? 'value') THEN
+                RETURN FALSE;
+            END IF;
+            -- Check field exists (insert order workaround below)
+        END IF;
+
+        -- VALIDATION: requires depends_on, allowed_map
+        IF rule_type = 'validation' THEN
+            IF NOT (rule ? 'depends_on' AND rule ? 'allowed_map') THEN
+                RETURN FALSE;
+            END IF;
+        END IF;
+
+        -- CONSTRAINT: requires operator + params
+        IF rule_type = 'constraint' THEN
+            IF NOT (rule ? 'operator') THEN RETURN FALSE; END IF;
+        END IF;
+
+        -- Unknown types forbidden
+        IF rule_type NOT IN ('visibility', 'validation', 'constraint') THEN
+            RETURN FALSE;
+        END IF;
+    END LOOP;
+
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+ALTER TABLE order_config ADD CONSTRAINT enforce_rules_integrity 
+CHECK (validate_rules_array(rules));
+
+-- Index for faster validation queries
+CREATE INDEX IF NOT EXISTS idx_order_config_rules_gin ON order_config USING GIN (rules);
+
+
+CREATE OR REPLACE FUNCTION validate_options_pricing(opts jsonb) 
+RETURNS boolean AS $$
+DECLARE
+    item jsonb;
+BEGIN
+    -- If it's empty or null, that's fine (e.g., for text input fields)
+    IF opts IS NULL OR jsonb_array_length(opts) = 0 THEN 
+        RETURN TRUE; 
+    END IF;
+
+    -- Iterate through each object in the array
+    FOR item IN SELECT * FROM jsonb_array_elements(opts) LOOP
+        IF NOT (item ? 'value' AND item ? 'price') THEN
+            RETURN FALSE;
+        END IF;
+        
+        IF jsonb_typeof(item->'price') != 'number' THEN
+            RETURN FALSE;
+        END IF;
+    END LOOP;
+
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+ALTER TABLE order_config
+ADD CONSTRAINT enforce_options_pricing 
+CHECK (validate_options_pricing(options));
+
 INSERT INTO order_status (order_status_id, display_name, description, display_order) VALUES
 ('DRAFT', 'Draft', 'Order is currently being edited and has not been submitted.', 1),
 ('AWAITING_APPROVAL', 'Awaiting Approval', 'Order is pending internal verification by a supervisor.', 2),
@@ -352,4 +530,5 @@ INSERT INTO order_config (
     '[]'::jsonb,
     'Extract customer full name for order.',
     true, true, 3, 90);
+
 
