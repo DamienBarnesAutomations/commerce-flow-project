@@ -26,7 +26,7 @@ onMounted(fetchEntries)
 
 const fmt = (val) => {
   const n = Number(val)
-  return n > 0 ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'
+  return n > 0 ? "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'
 }
 </script>
 

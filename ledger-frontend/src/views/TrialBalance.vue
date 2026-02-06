@@ -47,7 +47,7 @@ const isBalanced = computed(() =>
 )
 
 const fmt = (val) => {
-  return val > 0 ? val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'
+  return val > 0 ? "$" + val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'
 }
 
 onMounted(fetchTrialBalance)
@@ -113,11 +113,11 @@ onMounted(fetchTrialBalance)
           <div class="running-totals">
             <div class="total-box dr">
               <label>Total Debit</label>
-              <span>{{ totalDebit.toFixed(2) }}</span>
+              <span>${{ totalDebit.toFixed(2) }}</span>
             </div>
             <div class="total-box cr">
               <label>Total Credit</label>
-              <span>{{ totalCredit.toFixed(2) }}</span>
+              <span>${{ totalCredit.toFixed(2) }}</span>
             </div>
           </div>
         </div>

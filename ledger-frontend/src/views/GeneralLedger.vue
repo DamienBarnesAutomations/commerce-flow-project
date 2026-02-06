@@ -36,7 +36,7 @@ onMounted(fetchLedger)
 
 const fmt = (val) => {
   const n = Number(val)
-  return n > 0 ? n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'
+  return n > 0 ? "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'
 }
 </script>
 
@@ -78,9 +78,11 @@ const fmt = (val) => {
               <span class="entry-date">{{ new Date(row.entry_date).toLocaleDateString('en-GB') }}</span>
               <span class="entry-ref">#{{ row.reference || '0000' }}</span>
             </div>
-            
-            <div class="entry-desc">{{ row.description }}</div>
-            
+
+            <div class="entry-desc" :class="{ 'dimmed': !row.description }">
+              {{ row.description || "—" }}
+            </div>
+
             <div class="entry-values">
               <div class="v-group dr text-right">
                 <span class="v-label">DR</span>

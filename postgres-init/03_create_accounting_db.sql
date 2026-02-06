@@ -31,6 +31,15 @@ CREATE TYPE normal_balance AS ENUM (
   'credit'
 );
 
+-- 1. Table for Categories
+CREATE TABLE account_categories (
+    id SERIAL PRIMARY KEY,
+    type account_type NOT NULL, -- Uses your existing Enum
+    name TEXT NOT NULL UNIQUE,
+    label TEXT NOT NULL         -- For UI display (e.g., 'Cash & Bank')
+);
+
+
 CREATE TABLE accounts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 
@@ -42,6 +51,40 @@ CREATE TABLE accounts (
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE accounts 
+ADD COLUMN category_id INTEGER NOT NULL REFERENCES account_categories(id);
+
+INSERT INTO account_categories (type, name, label) VALUES
+-- ASSETS
+('asset', 'cash', 'Cash and Bank'),
+('asset', 'receivables', 'Accounts Receivable'),
+('asset', 'inventory', 'Inventory'),
+('asset', 'fixed_assets', 'Fixed Assets'),
+('asset', 'other_asset', 'Other Assets'),
+
+-- LIABILITIES
+('liability', 'payables', 'Accounts Payable'),
+('liability', 'credit_card', 'Credit Cards'),
+('liability', 'short_term_debt', 'Current Liabilities'),
+('liability', 'long_term_debt', 'Long-term Liabilities'),
+
+-- EQUITY
+('equity', 'equity', 'Equity / Capital'),
+('equity', 'retained_earnings', 'Retained Earnings'),
+
+-- INCOME
+('income', 'operating_revenue', 'Operating Revenue'),
+('income', 'other_income', 'Other Income'),
+
+-- EXPENSES
+('expense', 'cogs', 'Cost of Goods Sold'),
+('expense', 'operating_expense', 'Operating Expenses'),
+('expense', 'payroll', 'Payroll Expenses'),
+('expense', 'taxes', 'Taxes'),
+('expense', 'depreciation', 'Depreciation & Amortization');
+
+
 
 CREATE TABLE journal_entries (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

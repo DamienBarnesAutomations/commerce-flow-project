@@ -18,10 +18,26 @@ const removeRow = (i) => rows.value.length > 2 && rows.value.splice(i, 1)
 const onDebitInput = (r) => { if (r.debit > 0) r.credit = null }
 const onCreditInput = (r) => { if (r.credit > 0) r.debit = null }
 
-const totalDebit = computed(() => rows.value.reduce((s, r) => s + (Number(r.debit) || 0), 0))
-const totalCredit = computed(() => rows.value.reduce((s, r) => s + (Number(r.credit) || 0), 0))
-const balance = computed(() => totalDebit.value - totalCredit.value)
-const isBalanced = computed(() => Math.abs(balance.value) < 0.01 && totalDebit.value > 0)
+const totalDebit = computed(() => {
+  const sum = rows.value.reduce((s, r) => s + (Number(r.debit) || 0), 0);
+  return Math.round((sum + Number.EPSILON) * 100) / 100;
+});
+
+const totalCredit = computed(() => {
+  const sum = rows.value.reduce((s, r) => s + (Number(r.credit) || 0), 0);
+  return Math.round((sum + Number.EPSILON) * 100) / 100;
+});
+
+const balance = computed(() => {
+  // Subtracting two rounded numbers is safe
+  return Math.round((totalDebit.value - totalCredit.value + Number.EPSILON) * 100) / 100;
+});
+
+const isBalanced = computed(() => {
+  // Check if exactly zero and that there is actually a transaction
+  return Math.abs(balance.value) === 0 && totalDebit.value > 0;
+});
+
 
 const submitEntry = async () => {
   if (!isBalanced.value) return

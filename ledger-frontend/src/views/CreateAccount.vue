@@ -1,29 +1,64 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 
 const loading = ref(false)
+const fetchingMetadata = ref(false)
+
+// Form State
 const code = ref('')
 const name = ref('')
 const type = ref('asset')
+const categoryId = ref(null)
 const normalBalance = ref('debit')
 
-// Logic helper: Auto-assign normal balance based on account type
-watch(type, (newType) => {
-  if (['asset', 'expense'].includes(newType)) {
-    normalBalance.value = 'debit'
-  } else {
-    normalBalance.value = 'credit'
+// Metadata from DB
+const allCategories = ref([])
+
+const fetchMetadata = async () => {
+  fetchingMetadata.value = true
+  try {
+    const res = await fetch(import.meta.env.VITE_GET_CATEGORIES_WEBHOOK)
+    const data = await res.json()
+    
+    allCategories.value = Array.isArray(data) ? data : []
+    
+    // Set an initial category based on default type
+    setInitialCategory()
+  } catch (err) {
+    console.error('Failed to load categories:', err)
+  } finally {
+    fetchingMetadata.value = false
   }
+}
+
+// Filter categories based on the selected Account Type
+const filteredCategories = computed(() => {
+  return allCategories.value.filter(cat => cat.type === type.value)
 })
 
+const setInitialCategory = () => {
+  if (filteredCategories.value.length > 0) {
+    categoryId.value = filteredCategories.value[0].id
+  }
+}
+
+// Sync Normal Balance and Reset Category when Type changes
+watch(type, (newType) => {
+  normalBalance.value = ['asset', 'expense'].includes(newType) ? 'debit' : 'credit'
+  setInitialCategory()
+})
+
+onMounted(fetchMetadata)
+
 const submitAccount = async () => {
-  if (!code.value || !name.value) return
+  if (!code.value || !name.value || !categoryId.value) return
   
   loading.value = true
   const payload = {
     code: code.value.trim(),
     name: name.value.trim(),
     type: type.value,
+    category_id: categoryId.value, // Relational ID
     normal_balance: normalBalance.value
   }
 
@@ -36,7 +71,6 @@ const submitAccount = async () => {
 
     if (!res.ok) throw new Error('Failed to create account')
 
-    // Reset Form
     code.value = ''
     name.value = ''
     alert('Account created successfully')
@@ -59,7 +93,11 @@ const submitAccount = async () => {
         </div>
       </div>
       <div class="header-actions">
-        <button class="post-btn" :disabled="loading || !code || !name" @click="submitAccount">
+        <button 
+          class="post-btn" 
+          :disabled="loading || !code || !name || !categoryId || duplicateError" 
+          @click="submitAccount"
+        >
           {{ loading ? 'Saving...' : 'Create Account' }}
         </button>
       </div>
@@ -80,8 +118,9 @@ const submitAccount = async () => {
                 v-model="code" 
                 type="text" 
                 placeholder="e.g. 1001" 
-                class="min-input"
+                :class="['min-input', { 'input-error': duplicateError }]"
               />
+              <span v-if="duplicateError" class="error-text">This account code already exists.</span>
             </div>
 
             <div class="input-group grow">
@@ -108,6 +147,23 @@ const submitAccount = async () => {
             </div>
 
             <div class="input-group">
+              <label>Account Category</label>
+              <select 
+                v-model="categoryId" 
+                class="min-input" 
+                :disabled="fetchingMetadata"
+              >
+                <option v-if="fetchingMetadata" disabled>Loading categories...</option>
+                <option v-else-if="filteredCategories.length === 0" disabled>No categories found</option>
+                <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">
+                  {{ cat.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="input-group">
               <label>Normal Balance</label>
               <div class="toggle-group">
                 <button 
@@ -124,13 +180,37 @@ const submitAccount = async () => {
         </div>
 
         <div class="card-footer hint">
-          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-          Ensure account codes follow your firm's naming convention (e.g. 1000s for Assets).
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          Account categories help organize your Balance Sheet and P&L statements.
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Ensure you have this error style in your CSS section */
+.error-text {
+  color: var(--cr);
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.input-error {
+  border-color: var(--cr) !important;
+  background: rgba(248, 113, 113, 0.05) !important;
+}
+
+/* Rest of your existing CSS... */
+</style>
+
 
 <style scoped>
 .ledger-container {
@@ -235,4 +315,6 @@ const submitAccount = async () => {
   .form-grid { flex-direction: column; }
   .ledger-scroller { padding: 1rem; }
 }
+
+.error-text { color: var(--cr); font-size: 10px; margin-top: 4px; font-weight: bold; }
 </style>

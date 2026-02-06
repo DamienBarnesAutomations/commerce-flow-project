@@ -42,9 +42,12 @@ const menu = [
   { to: '/accounting/journal/new', icon: '➕', label: 'New Entry' },
   { to: '/accounting/ledger', icon: '📊', label: 'Ledger' },
   { to: '/accounting/trial-balance', icon: '⚖️', label: 'Trial Balance' },
+  { to: '/accounting/balance-sheet', icon: '🏛️', label: 'Balance Sheet' },
+  { to: '/accounting/profit-loss', icon: '📈', label: 'Profit & Loss' },
   { to: '/accounting/create-account', icon: '🗂️', label: 'Create Account' }
 
 ]
+
 
 const onNavClick = () => {
   if (window.innerWidth <= 640) {

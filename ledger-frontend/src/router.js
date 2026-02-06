@@ -6,6 +6,8 @@ import GeneralLedger from './views/GeneralLedger.vue'
 import TrialBalance from './views/TrialBalance.vue'
 import Reports from './views/Reports.vue'
 import CreateAccount from './views/CreateAccount.vue'
+import BalanceSheet from './views/BalanceSheet.vue'
+import ProfitAndLoss from './views/ProfitAndLoss.vue'
 
 export default createRouter({
   history: createWebHistory(),
@@ -16,6 +18,8 @@ export default createRouter({
     { path: '/accounting/ledger', component: GeneralLedger },
     { path: '/accounting/trial-balance', component: TrialBalance },
     { path: '/accounting/reports', component: Reports },
+    { path: '/accounting/balance-sheet', component: BalanceSheet },
+    { path: '/accounting/profit-loss', component: ProfitAndLoss },
     { path: '/accounting/create-account', component: CreateAccount }
   ]
 })
