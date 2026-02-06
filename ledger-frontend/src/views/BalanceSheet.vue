@@ -93,7 +93,7 @@ const loading = ref(true);
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await fetch(import.meta.env.VITE_BALANCE_SHEET_WEBHOOK);
+    const res = await fetch(import.meta.env.VITE_GET_BALANCE_SHEET_WEBHOOK);
     const data = await res.json();
     rawData.value = data;
   } catch (e) {

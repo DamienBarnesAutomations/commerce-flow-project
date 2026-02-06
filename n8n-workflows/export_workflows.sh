@@ -1,1 +1,1 @@
-docker exec standard_brain n8n export:workflow --all --output=/home/node/.n8n-files/workflows/workflows.json
+docker exec n8n_app n8n export:workflow --all --output=/home/node/.n8n-files/workflows/workflows.json

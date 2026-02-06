@@ -72,7 +72,7 @@ const loading = ref(true);
 const fetchData = async () => {
   loading.value = true;
   try {
-    const res = await fetch(import.meta.env.VITE_PROFIT_LOSS_WEBHOOK);
+    const res = await fetch(import.meta.env.VITE_GET_PROFIT_LOSS_WEBHOOK);
     rawData.value = await res.json();
   } catch (e) {
     console.error("P&L Fetch Error", e);

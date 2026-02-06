@@ -9,7 +9,7 @@ const fetchTrialBalance = async () => {
   loading.value = true
   error.value = null
   try {
-    const res = await fetch(import.meta.env.VITE_TRIAL_BALANCE_WEBHOOK)
+    const res = await fetch(import.meta.env.VITE_GET_TRIAL_BALANCE_WEBHOOK)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
     rows.value = Array.isArray(data) ? data : []

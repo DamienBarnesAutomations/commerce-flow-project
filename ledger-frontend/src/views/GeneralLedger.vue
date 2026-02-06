@@ -5,7 +5,7 @@ const rawEntries = ref([])
 const loading = ref(false)
 const error = ref(null)
 
-const LEDGER_WEBHOOK = import.meta.env.VITE_GENERAL_LEDGER_WEBHOOK
+const LEDGER_WEBHOOK = import.meta.env.VITE_GET_GENERAL_LEDGER_WEBHOOK
 
 const groupedLedger = computed(() => {
   if (!rawEntries.value.length) return {}

@@ -55,25 +55,28 @@ services:
       db:
         condition: service_healthy
 
-  # The Brain: Automation (n8n)
-  n8n:
+  n8n_app:
     image: n8nio/n8n:latest
-    container_name: standard_brain
+    container_name: n8n_app
     restart: always
+    ports:
+      - "5678:5678"
     environment:
-      - N8N_PROTOCOL=https
-      - N8N_HOST=${N8N_DOMAIN}
-      - WEBHOOK_URL=https://${N8N_DOMAIN}/
-      # Tells n8n the SSL is handled by NPM
-      - N8N_SSL_TERMINATED=true 
-    # Use the service name 'db' as defined in your compose
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${N8N_DB}
+      - DB_POSTGRESDB_USER=${N8N_USER}
+      - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
+      - N8N_PORT=5678
+      - N8N_SECURE_COOKIE=false
     volumes:
-      - ./flows:/home/node/.n8n
+      - ./flows2:/home/node/.n8n
       - ./public/images:/home/node/.n8n-files/public/images
       - ./n8n-workflows:/home/node/.n8n-files/workflows
     depends_on:
       db:
-        condition: service_healthy 
+        condition: service_healthy
 
   image_server:
     image: nginx:alpine
@@ -103,8 +106,9 @@ services:
       - VITE_APP_ICON=${VITE_APP_ICON}
       - VITE_LOGO=${VITE_LOGO}
     depends_on:
-      - n8n
+      - n8n_app
       - image_server
+      - python_app
     
   ledger_frontend:
     build:
@@ -120,17 +124,31 @@ services:
     environment:
       - VITE_API_BASE_URL=${VITE_API_BASE_URL_LEDGER}
       - VITE_APP_TITLE=${VITE_APP_TITLE_LEDGER}
-      - VITE_POST_JOURNAL_ENTRIES_WEBHOOK=${VITE_POST_JOURNAL_ENTRIES_WEBHOOK}
       - VITE_GET_JOURNAL_ENTRIES_WEBHOOK=${VITE_GET_JOURNAL_ENTRIES_WEBHOOK}
       - VITE_GET_ACCOUNTS_WEBHOOK=${VITE_GET_ACCOUNTS_WEBHOOK}
-      - VITE_GENERAL_LEDGER_WEBHOOK=${VITE_GENERAL_LEDGER_WEBHOOK}
-      - VITE_TRIAL_BALANCE_WEBHOOK=${VITE_TRIAL_BALANCE_WEBHOOK}
-      - VITE_CREATE_ACCOUNT_WEBHOOK=${VITE_CREATE_ACCOUNT_WEBHOOK}
+      - VITE_GET_GENERAL_LEDGER_WEBHOOK=${VITE_GET_GENERAL_LEDGER_WEBHOOK}
+      - VITE_GET_TRIAL_BALANCE_WEBHOOK=${VITE_GET_TRIAL_BALANCE_WEBHOOK}
       - VITE_GET_CATEGORIES_WEBHOOK=${VITE_GET_CATEGORIES_WEBHOOK}
-      - VITE_BALANCE_SHEET_WEBHOOK=${VITE_BALANCE_SHEET_WEBHOOK}
-      - VITE_PROFIT_LOSS_WEBHOOK=${VITE_PROFIT_LOSS_WEBHOOK}
+      - VITE_GET_BALANCE_SHEET_WEBHOOK=${VITE_GET_BALANCE_SHEET_WEBHOOK}
+      - VITE_GET_PROFIT_LOSS_WEBHOOK=${VITE_GET_PROFIT_LOSS_WEBHOOK}
+      - VITE_POST_JOURNAL_ENTRIES_WEBHOOK=${VITE_POST_JOURNAL_ENTRIES_WEBHOOK}
+      - VITE_CREATE_ACCOUNT_WEBHOOK=${VITE_CREATE_ACCOUNT_WEBHOOK}
+
+
     depends_on:
-      - n8n
+      - n8n_app
+      - python_app
+  
+  python_app:
+    build:
+      context: ./python_app
+      dockerfile: Dockerfile
+    container_name: python_app
+    restart: unless-stopped
+    ports:
+      - "5000:5000" 
+    environment:
+      N8N_INTERNAL_URL: ${N8N_INTERNAL_URL}
   
   
   
