@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+
 import os
 from handlers.accounting_message_handler import router as accounting_router
 from handlers.pos_message_handler import router as pos_router
@@ -12,6 +14,18 @@ N8N_URL = os.getenv('N8N_INTERNAL_URL', 'Not Set')
 app.include_router(accounting_router)
 app.include_router(pos_router)
 
+
+origins = [
+    "https://preciousplaceanu.duckdns.org/",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():
