@@ -14,104 +14,64 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create .env from secrets JSON
+      - name: Create .env from JSON
         run: |
-          echo '${{ secrets.ENV_JSON }}' | jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | .[]' > .env
-          echo ".env preview (masked):"
-          grep -vE 'KEY|TOKEN|PASS|SECRET' .env || true
+          echo '${{ secrets.ENV_JSON }}' \
+          | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
 
-      # ────────────────────────────────────────────────
-      #           Better SSH setup (recommended way)
-      # ────────────────────────────────────────────────
-      - name: Setup SSH for server access
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
 
-      - name: Add server to known_hosts (optional but safer)
+      - name: Setup Runner SSH
         run: |
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 
-      # ────────────────────────────────────────────────
-      #                   Main deployment
-      # ────────────────────────────────────────────────
-      - name: Deploy to server
-        env:
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          SERVER_IP:   ${{ secrets.SERVER_IP }}
-          GIT_PRIVATE_KEY: ${{ secrets.GIT_PRIVATE_KEY }}
+      - name: Prepare Server Directories
         run: |
-          # Debug: show connection info (careful with secrets)
-          echo "Connecting to $SERVER_USER@$SERVER_IP"
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          "sudo mkdir -p /app_tmp /app && sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app_tmp /app"
 
-          # Create temp + app directory structure with correct ownership
-          ssh $SERVER_USER@$SERVER_IP "
-            sudo mkdir -p /app_tmp /app &&
-            sudo chown -R $SERVER_USER:$SERVER_USER /app_tmp /app
-          "
+      - name: Transfer .env and GitHub Deploy Key
+        run: |
+          # Write GitHub Key to temporary file to SCP it
+          echo "${{ secrets.GIT_PRIVATE_KEY }}" > github_deploy_key
+          chmod 600 github_deploy_key
+          
+          # Transfer both files to the temp directory
+          scp .env github_deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app_tmp/
 
-          # Transfer the .env file
-          scp .env "$SERVER_USER@$SERVER_IP:/app_tmp/.env"
-
-          # ─── Remote deployment script ───────────────────────────────
-          ssh "$SERVER_USER@$SERVER_IP" GIT_PRIVATE_KEY="$GIT_PRIVATE_KEY" 'bash -s' << 'END_REMOTE'
-
-            set -euo pipefail
-
-            echo "→ Running as $(whoami) on $(hostname)"
-
-            # Setup deploy key for github.com
+      - name: Configure Server SSH for GitHub
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
-
-            echo "$GIT_PRIVATE_KEY" > ~/.ssh/github_deploy_key
+            mv /app_tmp/github_deploy_key ~/.ssh/github_deploy_key
             chmod 600 ~/.ssh/github_deploy_key
-
-            cat > ~/.ssh/config << 'EOC'
-          Host github.com
-              IdentityFile ~/.ssh/github_deploy_key
-              StrictHostKeyChecking no
-              User git
-          EOC
-
-            chmod 600 ~/.ssh/config
-
-            # Add github.com to known_hosts if missing
-            ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null || true
-
-            # ─── Repository update logic ───────────────────────────────
-            if [[ ! -d "/app/.git" ]]; then
-              echo "→ Cloning fresh repository..."
-              sudo rm -rf /app/* /app/.[!.]* /app/..?*  # Be careful — cleans everything
-              git clone --branch staging --single-branch \
-                git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
-            else
-              echo "→ Updating existing repository..."
-              cd /app
-              git fetch --prune origin
-              git checkout staging
-              git reset --hard origin/staging
-              git clean -fd
+            
+            # Setup SSH config if not exists
+            if ! grep -q "Host github.com" ~/.ssh/config 2>/dev/null; then
+              cat <<EOT >> ~/.ssh/config
+            Host github.com
+            	IdentityFile ~/.ssh/github_deploy_key
+            	StrictHostKeyChecking no
+            EOT
             fi
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+          EOF
 
-            # Move .env into place
-            mv /app_tmp/.env /app/.env || { echo "Failed to move .env"; exit 1; }
-
-            echo "→ Files in /app after deployment:"
-            ls -la /app | head -n 15
-
-            # ─── Docker deployment ─────────────────────────────────────
-            cd /app
-
-            echo "→ Stopping old containers..."
-            #docker compose down --remove-orphans || true
-
-            echo "→ Building & starting services..."
-            #docker compose up --build -d --force-recreate
-
-            echo "→ Deployment finished."
-            #docker compose ps
-
-          END_REMOTE
-
-          echo "Server deployment completed."
+      - name: Sync Repository and Finalize
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            if [ ! -d "/app/.git" ]; then
+              sudo rm -rf /app/*
+              git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
+            else
+              cd /app && git pull origin staging
+            fi
+            
+            # Move env from tmp to app
+            mv /app_tmp/.env /app/.env
+          EOF
