@@ -182,3 +182,28 @@ FROM journal_lines jl
 JOIN accounts a ON a.id = jl.account_id
 GROUP BY a.code, a.name
 ORDER BY a.code;
+
+
+DO $$
+DECLARE
+    cat_cash_id INTEGER;
+    cat_sales_id INTEGER;
+BEGIN
+    -- 1. Look up category IDs
+    SELECT id INTO cat_cash_id FROM account_categories WHERE name = 'cash';
+    SELECT id INTO cat_sales_id FROM account_categories WHERE name = 'operating_revenue';
+
+    -- 2. Insert Cash Account
+    -- We use ON CONFLICT (code) DO NOTHING to prevent errors on restarts
+    INSERT INTO accounts (code, name, type, normal_balance, category_id)
+    VALUES ('1000', 'Main Cash Account', 'asset', 'debit', cat_cash_id)
+    ON CONFLICT (code) DO NOTHING;
+
+    -- 3. Insert Sales Account
+    INSERT INTO accounts (code, name, type, normal_balance, category_id)
+    VALUES ('4000', 'General Sales', 'income', 'credit', cat_sales_id)
+    ON CONFLICT (code) DO NOTHING;
+
+    RAISE NOTICE 'Seed accounts verified/created.';
+END $$;
+
