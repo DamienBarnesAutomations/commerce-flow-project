@@ -32,7 +32,7 @@ jobs:
       - name: Prepare Server Directories
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          "sudo mkdir -p /app_tmp /app && sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app_tmp /app"
+          "sudo mkdir -p /app_tmp && sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app_tmp"
 
       - name: Transfer .env and GitHub Deploy Key
         run: |
