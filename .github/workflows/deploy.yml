@@ -39,9 +39,8 @@ jobs:
 
           # SSH into server and deploy
           ssh $USER_NAME@$SERVER_IP "
-            cd /home/$USER_NAME/project
             if [ ! -d .git ]; then
-              git clone git@github.com:your-org/your-repo.git .
+              git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /root/app
             else
               git pull
             fi
