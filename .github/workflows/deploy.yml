@@ -34,49 +34,45 @@ jobs:
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
           "sudo mkdir -p /app_tmp && sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app_tmp"
 
-      - name: Transfer .env and GitHub Deploy Key
+      - name: Transfer Setup Files
         run: |
-          # Write GitHub Key to temporary file to SCP it
+          # Prepare Key
           echo "${{ secrets.GIT_PRIVATE_KEY }}" > github_deploy_key
           chmod 600 github_deploy_key
           
-          # Transfer both files to the temp directory
-          scp .env github_deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app_tmp/
-
-      - name: Configure Server SSH for GitHub
-        run: |
-          # 1. Create a clean config file locally
+          # Prepare SSH Config
           cat <<EOT > github_ssh_config
           Host github.com
             IdentityFile ~/.ssh/github_deploy_key
             StrictHostKeyChecking no
           EOT
 
-          # 2. Upload the key and the clean config
-          scp github_deploy_key github_ssh_config ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app_tmp/
+          # Transfer everything at once
+          scp .env github_deploy_key github_ssh_config ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app_tmp/
 
-          # 3. Remote execution to move files and fix permissions
+      - name: Configure Server SSH for GitHub
+        run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
             
-            # Move the key
+            # Move and protect key
             mv /app_tmp/github_deploy_key ~/.ssh/github_deploy_key
             chmod 600 ~/.ssh/github_deploy_key
             
-            # OVERWRITE the bad config with the clean one
+            # Replace config with clean version
             mv /app_tmp/github_ssh_config ~/.ssh/config
             chmod 600 ~/.ssh/config
             
-            # Add GitHub to known hosts
             ssh-keyscan -H github.com >> ~/.ssh/known_hosts
           EOF
 
       - name: Sync Repository and Finalize
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            # Now that SSH is fixed, git commands will work
             if [ ! -d "/app/.git" ]; then
+              sudo mkdir -p /app
+              sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app
               sudo rm -rf /app/*
               git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
             else
@@ -87,19 +83,11 @@ jobs:
             
             mv /app_tmp/.env /app/.env
           EOF
-      
+
       - name: Deploy with Docker Compose
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             cd /app
-            
-            # Pull latest images (if using a registry) or build locally
-            # --build: Rebuild images if Dockerfile changed
-            # -d: Run in detached mode
-            # --remove-orphans: Clean up containers no longer defined in the file
             sudo docker compose up -d --build --remove-orphans
-            
-            # Optional: Clean up unused images to save disk space
             sudo docker image prune -f
           EOF
-
