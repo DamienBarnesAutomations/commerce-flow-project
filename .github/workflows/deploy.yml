@@ -87,3 +87,19 @@ jobs:
             
             mv /app_tmp/.env /app/.env
           EOF
+      
+      - name: Deploy with Docker Compose
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            cd /app
+            
+            # Pull latest images (if using a registry) or build locally
+            # --build: Rebuild images if Dockerfile changed
+            # -d: Run in detached mode
+            # --remove-orphans: Clean up containers no longer defined in the file
+            sudo docker compose up -d --build --remove-orphans
+            
+            # Optional: Clean up unused images to save disk space
+            sudo docker image prune -f
+          EOF
+
