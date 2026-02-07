@@ -46,7 +46,7 @@ jobs:
             else
               git pull
             fi
-            mv /root/app_tmp/.env /root/app/
+            mv /root/app_tmp/.env /root/app/.env
 
             cd app
             docker compose up --build -d
