@@ -45,22 +45,34 @@ jobs:
 
       - name: Configure Server SSH for GitHub
         run: |
+          # 1. Create a local config file first
+          cat <<EOT > github_ssh_config
+          Host github.com
+            IdentityFile ~/.ssh/github_deploy_key
+            StrictHostKeyChecking no
+          EOT
+
+          # 2. Upload the config file
+          scp github_ssh_config ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app_tmp/github_ssh_config
+
+          # 3. Remote execution to move files and set permissions
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
+            
+            # Move the key and config from tmp
             mv /app_tmp/github_deploy_key ~/.ssh/github_deploy_key
             chmod 600 ~/.ssh/github_deploy_key
             
-            # Setup SSH config if not exists
-            if ! grep -q "Host github.com" ~/.ssh/config 2>/dev/null; then
-              cat <<EOT >> ~/.ssh/config
-            Host github.com
-            	IdentityFile ~/.ssh/github_deploy_key
-            	StrictHostKeyChecking no
-            EOT
-            fi
+            # Safely append or create the config
+            cat /app_tmp/github_ssh_config >> ~/.ssh/config
+            chmod 600 ~/.ssh/config
+            
+            # Cleanup and known_hosts
+            rm /app_tmp/github_ssh_config
             ssh-keyscan -H github.com >> ~/.ssh/known_hosts
           EOF
+
 
       - name: Sync Repository and Finalize
         run: |
