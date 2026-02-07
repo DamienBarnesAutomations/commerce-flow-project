@@ -1,4 +1,5 @@
 name: Deploy to Server
+
 on:
   push:
     branches:
@@ -13,74 +14,104 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create .env from JSON
+      - name: Create .env from secrets JSON
         run: |
-          echo '${{ secrets.ENV_JSON }}' \
-            | jq -r 'to_entries | map("(.key)=(.value)") | .[]' > .env
-          echo ".env created:"
-          cat .env
+          echo '${{ secrets.ENV_JSON }}' | jq -r 'to_entries | map("\(.key)=\(.value|tostring)") | .[]' > .env
+          echo ".env preview (masked):"
+          grep -vE 'KEY|TOKEN|PASS|SECRET' .env || true
 
-      - name: Install SSH client
-        run: sudo apt-get update && sudo apt-get install -y openssh-client
+      # ────────────────────────────────────────────────
+      #           Better SSH setup (recommended way)
+      # ────────────────────────────────────────────────
+      - name: Setup SSH for server access
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy and Setup Repository
+      - name: Add server to known_hosts (optional but safer)
+        run: |
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      # ────────────────────────────────────────────────
+      #                   Main deployment
+      # ────────────────────────────────────────────────
+      - name: Deploy to server
         env:
-          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_IP:   ${{ secrets.SERVER_IP }}
           GIT_PRIVATE_KEY: ${{ secrets.GIT_PRIVATE_KEY }}
-          USER_NAME: ${{ secrets.SERVER_USER }}
-          SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          # Local SSH setup for GitHub Actions runner
-          mkdir -p ~/.ssh
-          echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          printf "Host *
-\tStrictHostKeyChecking no
-" > ~/.ssh/config
+          # Debug: show connection info (careful with secrets)
+          echo "Connecting to $SERVER_USER@$SERVER_IP"
 
-          # 1. Create temporary and target directories
-          ssh "$USER_NAME@$SERVER_IP" "sudo mkdir -p /app_tmp /app && sudo chown -R $USER_NAME:$USER_NAME /app_tmp /app"
+          # Create temp + app directory structure with correct ownership
+          ssh $SERVER_USER@$SERVER_IP "
+            sudo mkdir -p /app_tmp /app &&
+            sudo chown -R $SERVER_USER:$SERVER_USER /app_tmp /app
+          "
 
-          # 2. SCP the generated .env to the temporary folder
-          scp .env "$USER_NAME@$SERVER_IP:/app_tmp/.env"
+          # Transfer the .env file
+          scp .env "$SERVER_USER@$SERVER_IP:/app_tmp/.env"
 
-          # 3. Remote execution (note the quoted EOF)
-          ssh "$USER_NAME@$SERVER_IP" bash -s << 'EOF'
-            set -e
+          # ─── Remote deployment script ───────────────────────────────
+          ssh "$SERVER_USER@$SERVER_IP" GIT_PRIVATE_KEY="$GIT_PRIVATE_KEY" 'bash -s' << 'END_REMOTE'
 
+            set -euo pipefail
+
+            echo "→ Running as $(whoami) on $(hostname)"
+
+            # Setup deploy key for github.com
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
 
-            # Write deploy key from environment (this will be expanded on the remote side)
-            cat > ~/.ssh/github_deploy_key << 'KEYEOF'
-${GIT_PRIVATE_KEY}
-KEYEOF
-
+            echo "$GIT_PRIVATE_KEY" > ~/.ssh/github_deploy_key
             chmod 600 ~/.ssh/github_deploy_key
 
-            cat <<EOT > ~/.ssh/config
-Host github.com
-  IdentityFile ~/.ssh/github_deploy_key
-  StrictHostKeyChecking no
-EOT
+            cat > ~/.ssh/config << 'EOC'
+          Host github.com
+              IdentityFile ~/.ssh/github_deploy_key
+              StrictHostKeyChecking no
+              User git
+          EOC
 
-            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+            chmod 600 ~/.ssh/config
 
-            if [ ! -d "/app/.git" ]; then
-              echo "Repository not found, cloning..."
-              sudo rm -rf /app/*
-              git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
+            # Add github.com to known_hosts if missing
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null || true
+
+            # ─── Repository update logic ───────────────────────────────
+            if [[ ! -d "/app/.git" ]]; then
+              echo "→ Cloning fresh repository..."
+              sudo rm -rf /app/* /app/.[!.]* /app/..?*  # Be careful — cleans everything
+              git clone --branch staging --single-branch \
+                git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
             else
-              echo "Repository exists, pulling latest changes..."
+              echo "→ Updating existing repository..."
               cd /app
-              git fetch origin staging
+              git fetch --prune origin
+              git checkout staging
               git reset --hard origin/staging
+              git clean -fd
             fi
 
-            mv /app_tmp/.env /app/.env
-            echo "Deployment successful."
+            # Move .env into place
+            mv /app_tmp/.env /app/.env || { echo "Failed to move .env"; exit 1; }
 
+            echo "→ Files in /app after deployment:"
+            ls -la /app | head -n 15
+
+            # ─── Docker deployment ─────────────────────────────────────
             cd /app
-            docker-compose down
-            docker-compose up --build -d
-EOF
+
+            echo "→ Stopping old containers..."
+            #docker compose down --remove-orphans || true
+
+            echo "→ Building & starting services..."
+            #docker compose up --build -d --force-recreate
+
+            echo "→ Deployment finished."
+            #docker compose ps
+
+          END_REMOTE
+
+          echo "Server deployment completed."
