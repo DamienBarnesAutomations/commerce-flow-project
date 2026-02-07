@@ -6,7 +6,7 @@ flows2/
 dev/
 
 # Environment variables
-.env
+.env*
 public/images/*
 npm-data/*
 npm-letsencrypt/*

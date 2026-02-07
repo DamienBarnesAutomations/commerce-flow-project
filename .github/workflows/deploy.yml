@@ -13,6 +13,11 @@ jobs:
       # Step 1: Checkout the code (Updated to v4)
       - name: Checkout code
         uses: actions/checkout@v4
+      
+      - name: Create .env from JSON
+        run: |
+          echo '${{ secrets.ENV_JSON }}' | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
+
 
       # Step 2: Log in to GitHub Container Registry (Updated to v3)
       - name: Log in to GitHub Container Registry
