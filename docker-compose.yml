@@ -105,6 +105,7 @@ services:
       - VITE_APP_TITLE=${VITE_APP_TITLE}
       - VITE_APP_ICON=${VITE_APP_ICON}
       - VITE_LOGO=${VITE_LOGO}
+      - DOMAIN_OR_IP=${DOMAIN_OR_IP}
     depends_on:
       - n8n_app
       - image_server
@@ -133,6 +134,7 @@ services:
       - VITE_GET_PROFIT_LOSS_WEBHOOK=${VITE_GET_PROFIT_LOSS_WEBHOOK}
       - VITE_POST_JOURNAL_ENTRIES_WEBHOOK=${VITE_POST_JOURNAL_ENTRIES_WEBHOOK}
       - VITE_CREATE_ACCOUNT_WEBHOOK=${VITE_CREATE_ACCOUNT_WEBHOOK}
+      - DOMAIN_OR_IP=${DOMAIN_OR_IP}
     depends_on:
       - n8n_app
       - python_app
