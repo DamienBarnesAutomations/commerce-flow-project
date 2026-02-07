@@ -36,7 +36,7 @@ jobs:
 
           # Copy .env
           # Correct path for system root folder
-          scp .env $USER_NAME@$SERVER_IP:/app/.env
+          scp .env $USER_NAME@$SERVER_IP:/app_tmp/.env
 
 
           # SSH into server and deploy
@@ -46,5 +46,8 @@ jobs:
             else
               git pull
             fi
+            mv ./app_tmp/.env ./app/
+
+            cd app
             docker compose up --build -d
           "
