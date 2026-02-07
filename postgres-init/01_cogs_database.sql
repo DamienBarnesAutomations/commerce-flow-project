@@ -76,11 +76,7 @@ CREATE TABLE IF NOT EXISTS recipe_components (
     UNIQUE (recipe_id, ingredient_id)
 );
 
-CREATE TABLE IF NOT EXISTS user_states (
-    chat_id BIGINT PRIMARY KEY,
-    current_mode TEXT DEFAULT 'MAIN',
-    last_updated TIMESTAMP DEFAULT NOW()
-);
+
 
 INSERT INTO units (unit_name, unit_type) VALUES 
 ('kg', 'WEIGHT'),

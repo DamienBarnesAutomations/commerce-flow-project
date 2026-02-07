@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from handlers.accounting_message_handler import router as accounting_router
 from handlers.pos_message_handler import router as pos_router
+from handlers.telegram_admin_message_handler import router as telegram_admin_router
 
 
 app = FastAPI(title="Python n8n Integration API")
@@ -13,10 +14,11 @@ N8N_URL = os.getenv('N8N_INTERNAL_URL', 'Not Set')
 
 app.include_router(accounting_router)
 app.include_router(pos_router)
+app.include_router(telegram_admin_router)
 
 
 origins = [
-    "https://preciousplaceanu.duckdns.org/",
+    "https://preciousplaceanu.duckdns.org/","https://api.telegram.org"
 ]
 
 app.add_middleware(
