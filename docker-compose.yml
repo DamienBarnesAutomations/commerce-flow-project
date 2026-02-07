@@ -150,6 +150,7 @@ services:
     environment:
       - N8N_INTERNAL_URL=${N8N_INTERNAL_URL}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - DOMAIN_OR_IP=${DOMAIN_OR_IP}
   
   
 
