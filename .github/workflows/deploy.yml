@@ -37,7 +37,7 @@ jobs:
           echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 
           # 1. Create temporary and target directories
-          ssh $USER_NAME@$SERVER_IP "sudo mkdir -p /app_tmp && sudo chown -R $USER_NAME:$USER_NAME /app_tmp"
+          ssh $USER_NAME@$SERVER_IP "sudo mkdir -p /app_tmp /app && sudo chown -R $USER_NAME:$USER_NAME /app_tmp /app"
 
           # 2. SCP the generated .env to the temporary folder
           scp .env $USER_NAME@$SERVER_IP:/app_tmp/.env
@@ -64,7 +64,7 @@ jobs:
               # If /app is empty or just has files but no .git, we clean and clone
               # Note: git clone requires an empty directory
               sudo rm -rf /app/*
-              git clone git@github.com:YOUR_ORG/YOUR_REPO.git /app
+              git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
             else
               cd /app && git pull
             fi
