@@ -6,8 +6,7 @@ export default defineConfig(({ mode }) => {
   return {
 
   plugins: [
-    vue(),
-    tailwindcss(),
+    vue()
   ],
   server: {
     allowedHosts: [
