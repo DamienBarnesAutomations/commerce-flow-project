@@ -44,26 +44,21 @@ jobs:
 
           # 3. Remote execution
           # Note: We pass GIT_PRIVATE_KEY as an argument to the remote shell to avoid expansion issues
-          ssh $USER_NAME@$SERVER_IP GIT_PRIVATE_KEY="$GIT_PRIVATE_KEY" 'bash -s' << 'EOF'
-            # Setup GitHub Deploy Key on the server
+          ssh $USER_NAME@$SERVER_IP GIT_PRIVATE_KEY="$GIT_PRIVATE_KEY" bash -s << EOF
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
-            
-            # Use the variable passed into the environment
+
             echo "$GIT_PRIVATE_KEY" > ~/.ssh/github_deploy_key
             chmod 600 ~/.ssh/github_deploy_key
 
-            # Configure SSH for GitHub access
             cat <<EOT > ~/.ssh/config
-            Host github.com
-              IdentityFile ~/.ssh/github_deploy_key
-              StrictHostKeyChecking no
-            EOT
+          Host github.com
+            IdentityFile ~/.ssh/github_deploy_key
+            StrictHostKeyChecking no
+          EOT
 
-            # Clear old keyscan and add fresh github.com fingerprint
             ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
-            # Handle Repository
             if [ ! -d "/app/.git" ]; then
               echo "Repository not found, cloning..."
               sudo rm -rf /app/*
@@ -75,9 +70,13 @@ jobs:
               git reset --hard origin/staging
             fi
 
-            # Move the .env from tmp to the final app directory
             mv /app_tmp/.env /app/.env
             echo "Deployment successful."
+
+            # Docker deployment
+            cd /app
+            docker-compose down
+            docker-compose up --build -d
           EOF
 
 
