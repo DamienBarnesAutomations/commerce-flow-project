@@ -3,7 +3,8 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig(({ mode }) => {
-
+  // Load env file FIRST, before returning config
+  const env = loadEnv(mode, process.cwd(), '')
   return {
 
   plugins: [
