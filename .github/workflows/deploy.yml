@@ -22,10 +22,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 3: Build and Push using Docker Compose
-      # Tip: Ensure your docker-compose.yml uses variables for image names
-      # e.g., image: ghcr.io/${{ github.repository }}/my-app:latest
-      - name: Build and Push Docker images
+       # Step 3: Build the Docker image
+      - name: Build Docker image
         run: |
-          docker-compose build
-          docker-compose push
+          docker compose build
+
+      # Step 4: Push the Docker image
+      - name: Push Docker image to GitHub Container Registry
+        run: |
+          docker compose push
