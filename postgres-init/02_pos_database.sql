@@ -15,12 +15,6 @@ GRANT ALL ON SCHEMA public TO pos_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public 
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO pos_user;
 
--- 2. Fix the specific error
-GRANT USAGE, SELECT, UPDATE ON SEQUENCE products_id_seq TO pos_user;
-
--- 3. RECOMMENDED: Fix it for ALL current sequences so this doesn't happen again
-GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO pos_user;
-
 -- 4. PRO-TIP: Fix it for ALL FUTURE sequences you might create
 ALTER DEFAULT PRIVILEGES IN SCHEMA public 
 GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO pos_user;
