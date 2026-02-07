@@ -23,41 +23,53 @@ jobs:
       - name: Install SSH client
         run: sudo apt-get update && sudo apt-get install -y openssh-client
 
-      - name: Copy .env and deploy
+      - name: Deploy and Setup Repository
         env:
           PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          GIT_PRIVATE_KEY: ${{ secrets.GIT_PRIVATE_KEY }}
           USER_NAME: ${{ secrets.SERVER_USER }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
+          # Local SSH Setup for GitHub Actions runner
           mkdir -p ~/.ssh
           echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 
-          # Copy .env
-          # Correct path for system root folder
-          scp .env $USER_NAME@$SERVER_IP:/root/app_tmp/.env
+          # 1. Create temporary and target directories
+          ssh $USER_NAME@$SERVER_IP "sudo mkdir -p /app_tmp && sudo chown -R $USER_NAME:$USER_NAME /app_tmp"
 
+          # 2. SCP the generated .env to the temporary folder
+          scp .env $USER_NAME@$SERVER_IP:/app_tmp/.env
 
-          # SSH into server and deploy
-          ssh $USER_NAME@$SERVER_IP "
-          # 1. Handle Git (using sudo if /app is root-owned)
-          if [ ! -d '/app/.git' ]; then
-            sudo git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
-          else
-            cd /app && sudo git pull
-          fi
+          # 3. Remote execution: Setup Git and move .env
+          ssh $USER_NAME@$SERVER_IP << 'EOF'
+            # Setup GitHub Deploy Key on the server
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            echo "${{ secrets.GIT_PRIVATE_KEY }}" > ~/.ssh/github_deploy_key
+            chmod 600 ~/.ssh/github_deploy_key
 
-          # 2. Move the .env file
-          # We check the /root/ path you defined in your cloud-config
-          if [ -f '/root/app_tmp/.env' ]; then
-            sudo mv /root/app_tmp/.env /app/.env
-            sudo chmod 600 /app/.env
-          else
-            echo 'Warning: .env not found in /root/app_tmp/'
-          fi
+            # Configure SSH for GitHub access
+            cat <<EOT > ~/.ssh/config
+            Host github.com
+              IdentityFile ~/.ssh/github_deploy_key
+              StrictHostKeyChecking no
+            EOT
 
-          # 3. Docker Compose
-          cd /app
-          #sudo docker compose up --build -d
-          "
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+            # Handle Repository
+            if [ ! -d "/app/.git" ]; then
+              # If /app is empty or just has files but no .git, we clean and clone
+              # Note: git clone requires an empty directory
+              sudo rm -rf /app/*
+              git clone git@github.com:YOUR_ORG/YOUR_REPO.git /app
+            else
+              cd /app && git pull
+            fi
+
+            # Move the .env from tmp to the final app directory
+            mv /app_tmp/.env /app/.env
+          EOF
+
