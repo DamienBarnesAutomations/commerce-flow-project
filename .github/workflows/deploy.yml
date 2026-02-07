@@ -42,12 +42,15 @@ jobs:
           # 2. SCP the generated .env to the temporary folder
           scp .env $USER_NAME@$SERVER_IP:/app_tmp/.env
 
-          # 3. Remote execution: Setup Git and move .env
-          ssh $USER_NAME@$SERVER_IP << 'EOF'
+          # 3. Remote execution
+          # Note: We pass GIT_PRIVATE_KEY as an argument to the remote shell to avoid expansion issues
+          ssh $USER_NAME@$SERVER_IP GIT_PRIVATE_KEY="$GIT_PRIVATE_KEY" 'bash -s' << 'EOF'
             # Setup GitHub Deploy Key on the server
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
-            echo "${{ secrets.GIT_PRIVATE_KEY }}" > ~/.ssh/github_deploy_key
+            
+            # Use the variable passed into the environment
+            echo "$GIT_PRIVATE_KEY" > ~/.ssh/github_deploy_key
             chmod 600 ~/.ssh/github_deploy_key
 
             # Configure SSH for GitHub access
@@ -57,19 +60,24 @@ jobs:
               StrictHostKeyChecking no
             EOT
 
+            # Clear old keyscan and add fresh github.com fingerprint
             ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
             # Handle Repository
             if [ ! -d "/app/.git" ]; then
-              # If /app is empty or just has files but no .git, we clean and clone
-              # Note: git clone requires an empty directory
+              echo "Repository not found, cloning..."
               sudo rm -rf /app/*
               git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
             else
-              cd /app && git pull
+              echo "Repository exists, pulling latest changes..."
+              cd /app
+              git fetch origin staging
+              git reset --hard origin/staging
             fi
 
             # Move the .env from tmp to the final app directory
             mv /app_tmp/.env /app/.env
+            echo "Deployment successful."
           EOF
+
 
