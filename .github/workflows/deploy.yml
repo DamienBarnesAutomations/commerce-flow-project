@@ -41,15 +41,23 @@ jobs:
 
           # SSH into server and deploy
           ssh $USER_NAME@$SERVER_IP "
-            cd root
-            if [ ! -d "/app/.git" ]; then
-              git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
-              cd app
-            else
-              cd /app && git pull
-            fi
-            mv ./app_tmp/.env ./app/.env
+          # 1. Handle Git (using sudo if /app is root-owned)
+          if [ ! -d '/app/.git' ]; then
+            sudo git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
+          else
+            cd /app && sudo git pull
+          fi
 
-            
-            docker compose up --build -d
+          # 2. Move the .env file
+          # We check the /root/ path you defined in your cloud-config
+          if [ -f '/root/app_tmp/.env' ]; then
+            sudo mv /root/app_tmp/.env /app/.env
+            sudo chmod 600 /app/.env
+          else
+            echo 'Warning: .env not found in /root/app_tmp/'
+          fi
+
+          # 3. Docker Compose
+          cd /app
+          #sudo docker compose up --build -d
           "
