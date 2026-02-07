@@ -35,12 +35,14 @@ jobs:
           echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 
           # Copy .env
-          scp .env $USER_NAME@$SERVER_IP:/home/$USER_NAME/project/.env
+          # Correct path for system root folder
+          scp .env $USER_NAME@$SERVER_IP:/app/.env
+
 
           # SSH into server and deploy
           ssh $USER_NAME@$SERVER_IP "
             if [ ! -d .git ]; then
-              git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /root/app
+              git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
             else
               git pull
             fi
