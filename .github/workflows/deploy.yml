@@ -41,13 +41,15 @@ jobs:
 
           # SSH into server and deploy
           ssh $USER_NAME@$SERVER_IP "
+            cd root
             if [ ! -d "/app/.git" ]; then
               git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
+              cd app
             else
               cd /app && git pull
             fi
             mv ./app_tmp/.env ./app/.env
 
-            cd app
+            
             docker compose up --build -d
           "
