@@ -1,38 +1,49 @@
-name: Build and Deploy Docker Image
-
+name: Deploy to Server
 on:
   push:
     branches:
-      - staging 
+      - staging
 
 jobs:
-  build_and_deploy:
+  deploy:
     runs-on: ubuntu-latest
+    environment: staging
 
     steps:
-      # Step 1: Checkout the code (Updated to v4)
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Create .env from JSON
         run: |
-          echo '${{ secrets.ENV_JSON }}' | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
+          echo '${{ secrets.ENV_JSON }}' \
+            | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
+          echo ".env created:"
+          cat .env
 
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
 
-      # Step 2: Log in to GitHub Container Registry (Updated to v3)
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-       # Step 3: Build the Docker image
-      - name: Build Docker image
+      - name: Copy .env and deploy
+        env:
+          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          USER_NAME: ${{ secrets.SERVER_USER }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          docker compose build
+          mkdir -p ~/.ssh
+          echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 
-      # Step 4: Push the Docker image
-      - name: Push Docker image to GitHub Container Registry
-        run: |
-          docker compose push
+          # Copy .env
+          scp .env $USER_NAME@$SERVER_IP:/home/$USER_NAME/project/.env
+
+          # SSH into server and deploy
+          ssh $USER_NAME@$SERVER_IP "
+            cd /home/$USER_NAME/project
+            if [ ! -d .git ]; then
+              git clone git@github.com:your-org/your-repo.git .
+            else
+              git pull
+            fi
+            docker compose up --build -d
+          "
