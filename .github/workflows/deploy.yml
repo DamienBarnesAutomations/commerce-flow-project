@@ -16,7 +16,7 @@ jobs:
       - name: Create .env from JSON
         run: |
           echo '${{ secrets.ENV_JSON }}' \
-            | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
+            | jq -r 'to_entries | map("(.key)=(.value)") | .[]' > .env
           echo ".env created:"
           cat .env
 
@@ -30,32 +30,39 @@ jobs:
           USER_NAME: ${{ secrets.SERVER_USER }}
           SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          # Local SSH Setup for GitHub Actions runner
+          # Local SSH setup for GitHub Actions runner
           mkdir -p ~/.ssh
           echo "$PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+          printf "Host *
+\tStrictHostKeyChecking no
+" > ~/.ssh/config
 
           # 1. Create temporary and target directories
-          ssh $USER_NAME@$SERVER_IP "sudo mkdir -p /app_tmp /app && sudo chown -R $USER_NAME:$USER_NAME /app_tmp /app"
+          ssh "$USER_NAME@$SERVER_IP" "sudo mkdir -p /app_tmp /app && sudo chown -R $USER_NAME:$USER_NAME /app_tmp /app"
 
           # 2. SCP the generated .env to the temporary folder
-          scp .env $USER_NAME@$SERVER_IP:/app_tmp/.env
+          scp .env "$USER_NAME@$SERVER_IP:/app_tmp/.env"
 
-          # 3. Remote execution
-          # Note: We pass GIT_PRIVATE_KEY as an argument to the remote shell to avoid expansion issues
-          ssh $USER_NAME@$SERVER_IP GIT_PRIVATE_KEY="$GIT_PRIVATE_KEY" bash -s << EOF
+          # 3. Remote execution (note the quoted EOF)
+          ssh "$USER_NAME@$SERVER_IP" bash -s << 'EOF'
+            set -e
+
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
 
-            echo "$GIT_PRIVATE_KEY" > ~/.ssh/github_deploy_key
+            # Write deploy key from environment (this will be expanded on the remote side)
+            cat > ~/.ssh/github_deploy_key << 'KEYEOF'
+${GIT_PRIVATE_KEY}
+KEYEOF
+
             chmod 600 ~/.ssh/github_deploy_key
 
             cat <<EOT > ~/.ssh/config
-          Host github.com
-            IdentityFile ~/.ssh/github_deploy_key
-            StrictHostKeyChecking no
-          EOT
+Host github.com
+  IdentityFile ~/.ssh/github_deploy_key
+  StrictHostKeyChecking no
+EOT
 
             ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
@@ -73,10 +80,7 @@ jobs:
             mv /app_tmp/.env /app/.env
             echo "Deployment successful."
 
-            # Docker deployment
             cd /app
             docker-compose down
             docker-compose up --build -d
-          EOF
-
-
+EOF
