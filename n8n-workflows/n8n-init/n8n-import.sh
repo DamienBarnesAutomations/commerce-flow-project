@@ -9,8 +9,8 @@ if [ ! -f "$INIT_MARKER" ]; then
   # This clever line reads the template and evaluates the variables
   # It then outputs the 'real' JSON to a temporary file
   
-  eval "echo \"$(cat /home/node/.n8n-files/workflows/n8n-init/creds-template.json)\"" > /tmp/creds_to_import.json
-    
+  eval "echo \"$(sed 's/"/\\"/g' /home/node/.n8n-files/workflows/n8n-init/creds-template.json)\"" > /tmp/creds_to_import.json    
+  
   echo "Importing credentials..."
   n8n import:credentials --input=/tmp/creds_to_import.json
 
