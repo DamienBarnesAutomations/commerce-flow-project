@@ -7,7 +7,8 @@ dev/
 
 # Environment variables
 .env*
-public/images/*
+public/images/products/*
+public/images/tmp/*
 npm-data
 npm-letsencrypt/*
 certs/*
