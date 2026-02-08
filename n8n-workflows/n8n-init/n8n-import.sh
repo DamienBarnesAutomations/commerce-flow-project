@@ -18,12 +18,12 @@ if [ ! -f "$INIT_MARKER" ]; then
     echo "Importing workflows..."
     n8n import:workflow --input=/home/node/.n8n-files/workflows/workflows.json
     
+    echo "Gathering IDs and publishing..."
+    
     echo "Activating workflows individually..."
-    # 1. Get all IDs (using n8n list:workflow and cleaning the output)
-    # 2. Loop through each ID and activate it
-    for id in $(n8n list:workflow | grep -E '^[0-9]+' | awk '{print $1}'); do
-        echo "Activating workflow ID: $id"
-        n8n update:workflow --id=$id --active=true
+    for id in $(n8n list:workflow | tail -n +3 | awk '{print $1}' | sed '/^$/d'); do
+      echo "Attempting to publish: $id"
+      n8n publish:workflow --id="$id"
     done
   fi
 
