@@ -1,5 +1,4 @@
 --- Run as postgres superuser
-CREATE ROLE custom_order_user LOGIN PASSWORD 'strong_password_here';
 CREATE DATABASE custom_order OWNER custom_order_user;
 
 -- Switch context to the new database

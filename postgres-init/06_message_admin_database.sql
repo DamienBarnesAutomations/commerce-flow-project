@@ -1,5 +1,4 @@
 --- Run as postgres superuser
-CREATE ROLE message_admin_user LOGIN PASSWORD 'strong_password_here';
 CREATE DATABASE message_admin OWNER message_admin_user;
 
 -- Switch context to the new database

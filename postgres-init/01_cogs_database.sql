@@ -1,5 +1,4 @@
 --- Run as postgres superuser
-CREATE ROLE cogs_user LOGIN PASSWORD 'strong_password_here';
 CREATE DATABASE cogs OWNER cogs_user;
 
 -- Switch context to the new database

@@ -30,6 +30,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # You can change this later
       POSTGRES_DB: ${POSTGRES_DB}
+      DB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ./postgres-init:/docker-entrypoint-initdb.d
       - ./db-data:/var/lib/postgresql/data
@@ -80,6 +81,7 @@ services:
 
   image_server:
     image: nginx:alpine
+    container_name: image_server
     ports:
       - "80"  # We'll use port 8081 to avoid conflicts
     volumes:

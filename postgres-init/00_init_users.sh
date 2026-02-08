@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+	CREATE ROLE cogs_user LOGIN PASSWORD '${DB_PASSWORD}';
+    CREATE ROLE pos_user LOGIN PASSWORD '${DB_PASSWORD}';
+    CREATE ROLE accounting_user LOGIN PASSWORD '${DB_PASSWORD}';
+    CREATE ROLE custom_order_user LOGIN PASSWORD '${DB_PASSWORD}';
+    CREATE ROLE n8n_user LOGIN PASSWORD '${DB_PASSWORD}';
+    CREATE ROLE message_admin_user LOGIN PASSWORD '${DB_PASSWORD}';
+EOSQL
+

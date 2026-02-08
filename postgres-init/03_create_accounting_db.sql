@@ -1,5 +1,4 @@
 --- Run as postgres superuser
-CREATE ROLE accounting_user LOGIN PASSWORD 'strong_password_here';
 CREATE DATABASE accounting OWNER accounting_user;
 
 -- Switch context to the new database
