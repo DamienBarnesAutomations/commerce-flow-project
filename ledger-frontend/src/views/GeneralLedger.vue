@@ -24,7 +24,17 @@ async function fetchLedger() {
     const res = await fetch(LEDGER_WEBHOOK)
     if (!res.ok) throw new Error('FETCH_ERROR')
     const data = await res.json()
-    rawEntries.value = Array.isArray(data) ? data : []
+    
+    // Filter out empty objects [ {} ] so the array length becomes 0 if no real data exists
+    if (Array.isArray(data)) {
+      rawEntries.value = data.filter(entry => 
+        entry && Object.keys(entry).length > 0
+      )
+    } else {
+      rawEntries.value = []
+    }
+    
+    // This will now show an empty array [] instead of [{}]
   } catch (err) {
     error.value = err.message
   } finally {
@@ -57,6 +67,7 @@ const fmt = (val) => {
 
     <div v-if="loading" class="empty-state">Syncing Ledger Data...</div>
     <div v-else-if="error" class="empty-state error">{{ error }}</div>
+    <div v-else-if="!groupedLedger.length" class="empty-state">No activity found.</div>
 
     <div v-else class="ledger-scroller">
       <div v-for="(rows, account) in groupedLedger" :key="account" class="acct-card">

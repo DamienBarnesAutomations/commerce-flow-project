@@ -123,7 +123,7 @@ onMounted(() => {
         </div>
         
         <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 custom-scrollbar">
-          <div v-if="store.groupedSales.length === 0" class="flex flex-col items-center justify-center h-40 text-zinc-600 border-2 border-dashed border-zinc-800 rounded-2xl">
+          <div v-if="!store.groupedSales || store.groupedSales.length === 0" class="flex flex-col items-center justify-center h-40 text-zinc-600 border-2 border-dashed border-zinc-800 rounded-2xl">
             <p>No transactions found for today.</p>
           </div>
 

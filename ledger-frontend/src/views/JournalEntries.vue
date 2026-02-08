@@ -14,13 +14,20 @@ async function fetchEntries() {
     const res = await fetch(JOURNAL_WEBHOOK)
     if (!res.ok) throw new Error('FETCH_ERROR')
     const data = await res.json()
-    entries.value = Array.isArray(data) ? data : []
+    
+    // Filter out items that are empty objects {}
+    if (Array.isArray(data)) {
+      entries.value = data.filter(entry => entry && Object.keys(entry).length > 0)
+    } else {
+      entries.value = []
+    }
   } catch (err) {
     error.value = err.message
   } finally {
     loading.value = false
   }
 }
+
 
 onMounted(fetchEntries)
 

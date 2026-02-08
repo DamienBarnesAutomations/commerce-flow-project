@@ -3,11 +3,14 @@
     <header class="view-header">
       <div class="title-meta">
         <h1>Balance Sheet</h1>
-        <div class="pill">As of {{ new Date().toLocaleDateString() }}</div>
+        <div class="pill">
+          <span class="pulse"></span>
+          As of {{ new Date().toLocaleDateString() }}
+        </div>
       </div>
-      <div class="header-actions">
-        <button class="post-btn" @click="fetchData">Refresh Data</button>
-      </div>
+      <button @click="fetchData" class="sync-btn" :class="{ spinning: loading }">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      </button>
     </header>
 
     <div class="ledger-scroller" v-if="!loading">
@@ -152,4 +155,34 @@ onMounted(fetchData);
 .operator { font-size: 2rem; font-weight: 300; }
 .check-item label { display: block; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); }
 .check-item .val { font-size: 1.5rem; font-weight: bold; }
+.sync-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; transition: 0.2s; }
+.sync-btn:hover { color: var(--text-main); }
+.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(9, 9, 11, 0.8);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.ledger-container {
+  --bg: #09090b;
+  --surface: #18181b;
+  --border: rgba(255,255,255,0.06);
+  --accent: #22d3ee;
+  --text-main: #fafafa;
+  --text-dim: #a1a1aa;
+  --dr: #4ade80;
+  --cr: #f87171;
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, sans-serif;
+}
 </style>

@@ -121,15 +121,26 @@ export const usePosStore = defineStore('pos', {
         }
     },
     async fetchDailySales() {
-        this.expandedTransactions = [];
-        try {
-            const response = await axios.get(dailySalesWebhook);
-            this.todaySales = response.data;
-            this.showSalesModal = true;
-        } catch (error) {
-            console.error("Could not load daily sales", error);
-        }
-    },
+    this.expandedTransactions = [];
+    try {
+      const response = await axios.get(dailySalesWebhook);
+      
+      // Filter out empty objects [ {} ] or items missing essential data
+      // Object.keys(item).length > 0 ensures it's not a blank JSON object
+      if (Array.isArray(response.data)) {
+        this.todaySales = response.data.filter(item => 
+          item && Object.keys(item).length > 0 && item.transaction_id
+        );
+      } else {
+        this.todaySales = [];
+      }
+
+      this.showSalesModal = true;
+    } catch (error) {
+      console.error("Could not load daily sales", error);
+      this.todaySales = []; // Reset on error to prevent ghost states
+    }
+  },
     toggleTransaction(id) {
         if (this.expandedTransactions.includes(id)) {
             this.expandedTransactions = this.expandedTransactions.filter(itemId => itemId !== id);
