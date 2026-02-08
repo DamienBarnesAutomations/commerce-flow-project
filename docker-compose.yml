@@ -71,10 +71,13 @@ services:
       - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
       - N8N_PORT=5678
       - N8N_SECURE_COOKIE=false
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./flows2:/home/node/.n8n
       - ./public/images:/home/node/.n8n-files/public/images
       - ./n8n-workflows:/home/node/.n8n-files/workflows
+    entrypoint: ["/bin/sh", "/home/node/.n8n-files/workflows/n8n-init/n8n-import.sh"]
     depends_on:
       db:
         condition: service_healthy

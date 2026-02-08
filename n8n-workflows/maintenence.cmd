@@ -1,1 +1,0 @@
-docker exec -it standard_brain n8n export:workflow --all --output=/home/node/.n8n-files/workflows/workflows.json
