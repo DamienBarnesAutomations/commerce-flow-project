@@ -3,8 +3,6 @@ set -e
 
 INIT_MARKER="/home/node/.n8n/init_complete"
 
-/home/node/.n8n-files/workflows
-
 if [ ! -f "$INIT_MARKER" ]; then
   echo "Injecting environment variables into credentials template..."
 
