@@ -100,6 +100,26 @@ jobs:
             sudo chmod -R 775 /app/flows2 /app/public /app/public/images /app/public/images/product /app/public/images/tmp /app/n8n-workflows
           EOF
 
+      - name: Inject ACME Secret
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            # 1. Create the directory
+            mkdir -p /app/letsencrypt
+            
+            # 2. Write the secret content to the file
+            # We use a heredoc to ensure the JSON formatting is preserved
+            cat << 'ACME_EOF' > /app/letsencrypt/acme.json
+          ${{ secrets.ACME_JSON }}
+          ACME_EOF
+
+            # 3. Set the strict permissions Traefik requires
+            chmod 600 /app/letsencrypt/acme.json
+            
+            # 4. Ensure ownership (Traefik usually runs as root in Docker unless specified)
+            # but setting it to your user is fine as the volume mount will handle it.
+            sudo chown ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app/letsencrypt/acme.json
+          EOF
+    
       - name: Deploy with Docker Compose
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
