@@ -21,7 +21,7 @@ if [ ! -f "$INIT_MARKER" ]; then
     echo "Gathering IDs and publishing..."
     
     echo "Activating workflows individually..."
-    for id in $(n8n list:workflow | tail -n +3 | awk '{print $1}' | sed '/^$/d'); do
+    for id in $(n8n list:workflow | tail -n +2 | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $1); print $1}'); do
       echo "Attempting to publish: $id"
       n8n publish:workflow --id="$id"
     done
