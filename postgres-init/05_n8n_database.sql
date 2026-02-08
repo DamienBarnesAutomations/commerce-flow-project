@@ -13,3 +13,10 @@ GRANT ALL ON SCHEMA public TO n8n_user;
 -- Ensure future tables created by any user are accessible
 ALTER DEFAULT PRIVILEGES IN SCHEMA public 
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO n8n_user;
+
+
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO n8n_user;
+
+-- Ensure future sequences are accessible
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT ALL ON SEQUENCES TO n8n_user;

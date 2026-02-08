@@ -8,8 +8,10 @@ dev/
 # Environment variables
 .env*
 public/images/*
-npm-data/*
+npm-data
 npm-letsencrypt/*
 certs/*
-nginx-conf/*
+nginx-conf
 my_deploy_key*
+env_secrets*
+letsencrypt

@@ -14,6 +14,12 @@ GRANT ALL ON SCHEMA public TO custom_order_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public 
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO custom_order_user;
 
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO custom_order_user;
+
+-- Ensure future sequences are accessible
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT ALL ON SEQUENCES TO custom_order_user;
+
 CREATE TABLE IF NOT EXISTS chat_sessions (
     customer_id VARCHAR(20) PRIMARY KEY,
     current_state VARCHAR(50) DEFAULT 'START',

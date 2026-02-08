@@ -14,6 +14,12 @@ GRANT ALL ON SCHEMA public TO accounting_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public 
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO accounting_user;
 
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO accounting_user;
+
+-- Ensure future sequences are accessible
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT ALL ON SEQUENCES TO accounting_user;
+
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
