@@ -81,6 +81,7 @@ services:
       - DB_POSTGRESDB_DATABASE=${N8N_DB}
       - DB_POSTGRESDB_USER=${N8N_USER}
       - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD = ${DB_PASSWORD}
       - N8N_PORT=5678
       - N8N_SECURE_COOKIE=false
     expose:
