@@ -16,8 +16,8 @@ if [ ! -f "$INIT_MARKER" ]; then
 
   if [ -f "/home/node/.n8n-files/workflows/workflows.json" ]; then
     echo "Importing workflows..."
-    eval "echo \"$(cat /home/node/.n8n-files/workflows/workflows.json)\"" > /tmp/workflows.json
-    n8n import:workflow --input=/tmp/workflows.json
+    n8n import:workflow --input=/home/node/.n8n-files/workflows/workflows.json
+    n8n update:workflow --all --active=true
   fi
 
   rm /tmp/creds_to_import.json
