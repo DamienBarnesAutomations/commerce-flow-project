@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS user_states (
 CREATE TABLE IF NOT EXISTS user_message_history (
     user_id BIGINT PRIMARY KEY,
     message TEXT DEFAULT 'MAIN',
-    last_updated TIMESTAMP DEFAULT NOW()
+    last_updated TIMESTAMP DEFAULT NOW(),
+    is_active BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS users (
