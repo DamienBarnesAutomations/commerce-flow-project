@@ -47,3 +47,9 @@ CREATE TABLE IF NOT EXISTS sales (
     total_price DECIMAL(10,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS journal_write_log (
+    id SERIAL PRIMARY KEY,
+    last_write TIMESTAMP NOT NULL,
+    reference TEXT NOT NULL
+);

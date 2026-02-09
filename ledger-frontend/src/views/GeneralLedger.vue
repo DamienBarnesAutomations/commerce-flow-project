@@ -67,7 +67,7 @@ const fmt = (val) => {
 
     <div v-if="loading" class="empty-state">Syncing Ledger Data...</div>
     <div v-else-if="error" class="empty-state error">{{ error }}</div>
-    <div v-else-if="!groupedLedger.length" class="empty-state">No activity found.</div>
+    <div v-else-if="Object.keys(groupedLedger).length === 0" class="empty-state">No activity found.</div>
 
     <div v-else class="ledger-scroller">
       <div v-for="(rows, account) in groupedLedger" :key="account" class="acct-card">
@@ -175,6 +175,8 @@ const fmt = (val) => {
   display: grid;
   grid-template-columns: 140px 1fr 140px 140px;
   padding: 0.75rem 1.25rem;
+  column-gap: 2.5rem;
+  align-items: center;
 }
 
 .table-head {

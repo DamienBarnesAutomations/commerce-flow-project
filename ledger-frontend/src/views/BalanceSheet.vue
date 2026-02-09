@@ -109,11 +109,11 @@ const fetchData = async () => {
 const groupedData = computed(() => {
   const groups = { asset: {}, liability: {}, equity: {} };
   rawData.value.forEach(item => {
-    if (!groups[item.account_type]) return;
-    if (!groups[item.account_type][item.category_label]) {
-      groups[item.account_type][item.category_label] = [];
+    if (!groups[item.type]) return;
+    if (!groups[item.type][item.category_label]) {
+      groups[item.type][item.category_label] = [];
     }
-    groups[item.account_type][item.category_label].push(item);
+    groups[item.type][item.category_label].push(item);
   });
   return groups;
 });

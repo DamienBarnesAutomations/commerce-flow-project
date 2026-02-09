@@ -20,6 +20,8 @@ GET_CATEGORIES_WEBHOOK = f"{N8N_URL}webhook/accounting/categories"
 GET_BALANCE_SHEET_WEBHOOK = f"{N8N_URL}webhook/accounting/balanceSheet"
 GET_PROFIT_AND_LOSS_WEBHOOK = f"{N8N_URL}webhook/accounting/profitAndLoss"
 POST_JOURNAL_ENTRIES_WEBHOOK =f"{N8N_URL}webhook/accounting/journalEntry"
+GET_INCOME_REPORT_WEBHOOK =f"{N8N_URL}webhook/accounting/incomeReport"
+GET_EXPENSE_REPORT_WEBHOOK =f"{N8N_URL}webhook/accounting/expenseReport"
 CREATE_ACCOUNT_WEBHOOK =f"{N8N_URL}webhook/accounting/createAccount"
 
 
@@ -93,6 +95,14 @@ async def get_balance_sheet(request: Request):
 @router.get("/profitAndLoss")
 async def get_profit_and_loss(request: Request):
     return await get(request, GET_PROFIT_AND_LOSS_WEBHOOK)
+
+@router.get("/incomeReport")
+async def get_income_report(request: Request):
+    return await get(request, GET_INCOME_REPORT_WEBHOOK)
+
+@router.get("/expenseReport")
+async def get_expense_report(request: Request):
+    return await get(request, GET_EXPENSE_REPORT_WEBHOOK)
 
 async def post(request: Request, url):
     logger.info("Received request for {url}}")

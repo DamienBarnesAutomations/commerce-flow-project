@@ -134,15 +134,17 @@ services:
       - ./frontend:/app
       - /app/node_modules # Prevents local node_modules from overwriting container ones
     environment:
-      - VITE_GET_PRODUCTS_WEBHOOK=${GET_PRODUCTS_WEBHOOK}
+      - VITE_API_BASE_URL=${API_BASE_URL}
       - VITE_IMAGE_BASE_URL=${IMAGE_BASE_URL}
-      - VITE_RECORD_SALES_WEBHOOK=${RECORD_SALES_WEBHOOK}
-      - VITE_DAILY_SALES_WEBHOOK=${DAILY_SALES_WEBHOOK}
-      - VITE_CURRENCY=${CURRENCY}
-      - VITE_APP_TITLE=${VITE_APP_TITLE}
-      - VITE_APP_ICON=${VITE_APP_ICON}
-      - VITE_LOGO=${VITE_LOGO}
+      - VITE_CURRENCY=$
+      - VITE_APP_TITLE=Precious Place POS
+      - VITE_APP_ICON=/icon.png
+      - VITE_LOGO=precious_place_logo-removebg.png
       - DOMAIN_OR_IP=${DOMAIN_OR_IP}
+      - VITE_GET_PRODUCTS_WEBHOOK=${API_BASE_URL}pos/products
+      - VITE_RECORD_SALES_WEBHOOK=${API_BASE_URL}pos/recordSales
+      - VITE_DAILY_SALES_WEBHOOK=${API_BASE_URL}pos/dailyTotalSales
+      
     depends_on:
       - n8n_app
       - image_server
@@ -173,17 +175,19 @@ services:
       - ./ledger-frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL_LEDGER}
-      - VITE_APP_TITLE=${VITE_APP_TITLE_LEDGER}
-      - VITE_GET_JOURNAL_ENTRIES_WEBHOOK=${VITE_GET_JOURNAL_ENTRIES_WEBHOOK}
-      - VITE_GET_ACCOUNTS_WEBHOOK=${VITE_GET_ACCOUNTS_WEBHOOK}
-      - VITE_GET_GENERAL_LEDGER_WEBHOOK=${VITE_GET_GENERAL_LEDGER_WEBHOOK}
-      - VITE_GET_TRIAL_BALANCE_WEBHOOK=${VITE_GET_TRIAL_BALANCE_WEBHOOK}
-      - VITE_GET_CATEGORIES_WEBHOOK=${VITE_GET_CATEGORIES_WEBHOOK}
-      - VITE_GET_BALANCE_SHEET_WEBHOOK=${VITE_GET_BALANCE_SHEET_WEBHOOK}
-      - VITE_GET_PROFIT_LOSS_WEBHOOK=${VITE_GET_PROFIT_LOSS_WEBHOOK}
-      - VITE_POST_JOURNAL_ENTRIES_WEBHOOK=${VITE_POST_JOURNAL_ENTRIES_WEBHOOK}
-      - VITE_CREATE_ACCOUNT_WEBHOOK=${VITE_CREATE_ACCOUNT_WEBHOOK}
+      - VITE_API_BASE_URL=${API_BASE_URL}
+      - VITE_APP_TITLE=Accounting
+      - VITE_GET_JOURNAL_ENTRIES_WEBHOOK=${API_BASE_URL}accounting/journalEntries
+      - VITE_GET_ACCOUNTS_WEBHOOK=${API_BASE_URL}accounting/accounts
+      - VITE_GET_GENERAL_LEDGER_WEBHOOK=${API_BASE_URL}accounting/ledger
+      - VITE_GET_TRIAL_BALANCE_WEBHOOK=${API_BASE_URL}accounting/trialBalance
+      - VITE_GET_CATEGORIES_WEBHOOK=${API_BASE_URL}accounting/categories
+      - VITE_GET_BALANCE_SHEET_WEBHOOK=${API_BASE_URL}accounting/balanceSheet
+      - VITE_GET_PROFIT_LOSS_WEBHOOK=${API_BASE_URL}accounting/profitAndLoss
+      - VITE_POST_JOURNAL_ENTRIES_WEBHOOK=${API_BASE_URL}accounting/journalEntry
+      - VITE_CREATE_ACCOUNT_WEBHOOK=${API_BASE_URL}accounting/createAccount
+      - VITE_GET_INCOME_WEBHOOK=${API_BASE_URL}accounting/incomeReport
+      - VITE_GET_EXPENSE_WEBHOOK=${API_BASE_URL}accounting/expenseReport
       - DOMAIN_OR_IP=${DOMAIN_OR_IP}
     depends_on:
       - n8n_app
@@ -224,6 +228,8 @@ services:
       - N8N_INTERNAL_URL=${N8N_INTERNAL_URL}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - DOMAIN_OR_IP=${DOMAIN_OR_IP}
+    depends_on:
+      - n8n_app
 
   traefik:
     image: traefik:latest
@@ -252,6 +258,12 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./letsencrypt:/letsencrypt
+    depends_on:
+      - image_server
+      - db
+      - n8n_app
+      - frontend
+      - ledger_frontend
 
   
 

@@ -6,7 +6,7 @@
 
     <aside :class="['sidebar', { collapsed, 'mobile-open': mobileOpen }]">
       <div class="sidebar-header">
-        <span class="logo" v-if="!collapsed || mobileOpen">Vue Ledger</span>
+        <span class="logo" v-if="!collapsed || mobileOpen">Ledger</span>
         <button class="icon-btn hide-mobile" @click="collapsed = !collapsed">☰</button>
         <button class="icon-btn hide-desktop" @click="mobileOpen = false">✕</button>
       </div>
@@ -44,6 +44,8 @@ const menu = [
   { to: '/accounting/trial-balance', icon: '⚖️', label: 'Trial Balance' },
   { to: '/accounting/balance-sheet', icon: '🏛️', label: 'Balance Sheet' },
   { to: '/accounting/profit-loss', icon: '📈', label: 'Profit & Loss' },
+  { to: '/accounting/income-report', icon: '💰', label: 'Income Report' },
+  { to: '/accounting/expense-report', icon: '💸', label: 'Expense Report' },
   { to: '/accounting/create-account', icon: '🗂️', label: 'Create Account' }
 
 ]

@@ -185,6 +185,7 @@ const fmt = (val) => {
   grid-template-columns: 140px 1fr 140px 140px;
   padding: 0.75rem 1.25rem; /* Strict horizontal padding sync */
   align-items: center;
+  column-gap: 2.5rem;
 }
 
 .table-head {

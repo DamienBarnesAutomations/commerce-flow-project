@@ -100,7 +100,6 @@ export const usePosStore = defineStore('pos', {
             quantity: item.quantity,
             price_at_sale: item.price
         }));
-        alert(recordSalesWebhook)
         await axios.post(recordSalesWebhook, payload);
             
         this.clearCart();

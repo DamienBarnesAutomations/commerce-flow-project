@@ -8,6 +8,8 @@ import Reports from './views/Reports.vue'
 import CreateAccount from './views/CreateAccount.vue'
 import BalanceSheet from './views/BalanceSheet.vue'
 import ProfitAndLoss from './views/ProfitAndLoss.vue'
+import IncomeReport from './views/IncomeReport.vue'
+import ExpenseReport from './views/ExpenseReport.vue'
 
 export default createRouter({
   history: createWebHistory(),
@@ -20,6 +22,8 @@ export default createRouter({
     { path: '/accounting/reports', component: Reports },
     { path: '/accounting/balance-sheet', component: BalanceSheet },
     { path: '/accounting/profit-loss', component: ProfitAndLoss },
+    { path: '/accounting/income-report', component: IncomeReport },
+    { path: '/accounting/expense-report', component: ExpenseReport },
     { path: '/accounting/create-account', component: CreateAccount }
   ]
 })
