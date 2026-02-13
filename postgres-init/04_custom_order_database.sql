@@ -43,12 +43,28 @@ CREATE TABLE order_status (
 CREATE TABLE IF NOT EXISTS custom_orders (
     order_id SERIAL PRIMARY KEY,
     customer_id VARCHAR(20) REFERENCES chat_sessions(customer_id),
-    selections JSONB DEFAULT '{}',
+    selections JSONB DEFAULT '{
+        "client_name": null,
+        "event_date": null,
+        "delivery": null,
+        "delivery_address": null,
+        "layers": null,
+        "cake_theme": null,
+        "has_ac": null,
+        "layer_definitions": [
+            {
+                "layer_index": 1,
+                "size": null,
+                "flavor": null
+            }
+        ]
+    }',
     order_status_id VARCHAR(50) REFERENCES order_status(order_status_id) DEFAULT 'DRAFT', 
     turn_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE UNIQUE INDEX idx_one_funnel_order_per_user 
 ON custom_orders (customer_id) 
@@ -283,7 +299,7 @@ SELECT
     status,
     MAX(display_label) FILTER (WHERE field_key = ''client_name'') AS client_name,
     MAX(display_label) FILTER (WHERE field_key = ''event_date'') AS event_date,
-    MAX(display_label) FILTER (WHERE field_key = ''layer'') AS layer,
+    MAX(display_label) FILTER (WHERE field_key = ''layers'') AS layers,
     MAX(display_label) FILTER (WHERE field_key = ''size'') AS size,
     MAX(display_label) FILTER (WHERE field_key = ''flavor'') AS flavor,
     MAX(display_label) FILTER (WHERE field_key = ''cake_theme'') AS cake_theme,
@@ -291,7 +307,7 @@ SELECT
     MAX(display_label) FILTER (WHERE field_key = ''delivery'') AS delivery_method,
     MAX(display_label) FILTER (WHERE field_key = ''delivery_address'') AS delivery_address,
     
-    MAX(price_increment) FILTER (WHERE field_key = ''layer'') AS price_layer,
+    MAX(price_increment) FILTER (WHERE field_key = ''layers'') AS price_layers,
     MAX(price_increment) FILTER (WHERE field_key = ''size'') AS price_size,
     MAX(price_increment) FILTER (WHERE field_key = ''flavor'') AS price_flavor,
     MAX(price_increment) FILTER (WHERE field_key = ''has_ac'') AS price_ac,
@@ -478,7 +494,7 @@ INSERT INTO order_config (
     extraction_hint, is_required, is_active, step_group, sort_order
 ) VALUES
 -- 1. Layers
-('layer', 'Number of Layers', 'integer', 
+('layers', 'Number of Layers', 'integer', 
     '[{"label": "1 Layer", "value": "1", "price": 0}, {"label": "2 Layers", "value": "2", "price": 0}, {"label": "3 Layers", "value": "3", "price": 0}]'::jsonb,
     '[]'::jsonb,
     'Extract numbers 1-3 indicating cake layers. Look for "single layer", "double layer", or exact numbers.',
@@ -535,5 +551,3 @@ INSERT INTO order_config (
     '[]'::jsonb,
     'Extract customer full name for order.',
     true, true, 3, 90);
-
-

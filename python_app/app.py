@@ -7,6 +7,7 @@ from handlers.accounting_message_handler import router as accounting_router
 from handlers.pos_message_handler import router as pos_router
 from handlers.telegram_admin_message_handler import router as telegram_admin_router
 from handlers.password_handler import router as password_router
+from handlers.cake_order_telegram_handler import router as cake_order_telegram_router
 
 
 app = FastAPI(title="Python n8n Integration API")
@@ -17,6 +18,7 @@ app.include_router(accounting_router)
 app.include_router(pos_router)
 app.include_router(telegram_admin_router)
 app.include_router(password_router)
+app.include_router(cake_order_telegram_router)
 
 
 origins = [
