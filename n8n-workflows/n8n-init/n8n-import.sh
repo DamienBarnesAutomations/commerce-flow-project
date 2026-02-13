@@ -15,10 +15,20 @@ if [ -f "/home/node/.n8n-files/workflows/workflows.json" ]; then
   echo "Gathering IDs and publishing..."
   
   echo "Activating workflows individually..."
-  for id in $(n8n list:workflow | tail -n +2 | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $1); print $1}'); do
-    echo "Attempting to publish: $id"
-    n8n publish:workflow --id="$id"
-  done
+  # We use n8n list:workflow, skip the header, and have awk print "ID|Name"
+# The 'IFS=|' tells the read command to split the line at the pipe
+  n8n list:workflow | awk -F'|' '
+  {
+    gsub(/^[ \t]+|[ \t]+$/, "", $1);
+    gsub(/^[ \t]+|[ \t]+$/, "", $2);
+    if ($1 != "") {
+      system("echo \"Attempting to publish: " $2 " (ID: " $1 ")\"");
+      system("n8n publish:workflow --id=\"" $1 "\"");
+    }
+  }'
+
+
+
 fi
 rm /tmp/creds_to_import.json
 
