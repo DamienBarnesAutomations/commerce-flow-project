@@ -206,14 +206,14 @@ services:
       - "traefik.http.routers.custom_cake.tls.certresolver=myresolver"
       - "traefik.http.routers.custom_cake.tls.domains[0].main=${BASE_DOMAIN}"
       - "traefik.http.routers.custom_cake.tls.domains[0].sans=*.${BASE_DOMAIN}"
-      - "traefik.http.services.custom_cake.loadbalancer.server.port=5174"
+      - "traefik.http.services.custom_cake.loadbalancer.server.port=5175"
       # Forward Auth
       - "traefik.http.routers.custom_cake.middlewares=custom-cake-auth"
       - "traefik.http.middlewares.custom-cake-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
       - "traefik.http.middlewares.custom-cake-auth.forwardauth.trustForwardHeader=true"
     restart: always
     ports:
-      - "5174"  
+      - "5175"  
     volumes:
       - ./custom_cake_frontend:/app
       - /app/node_modules
