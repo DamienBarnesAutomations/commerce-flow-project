@@ -85,7 +85,6 @@ services:
       - EXECUTIONS_DATA_MAX_AGE=90
       - EXECUTIONS_DATA_PRUNE_MAX_COUNT=2500
       - EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=false
-      - N8N_LOG_LEVEL=warn
       - CURRENT_ENV=${ENV}
     expose:
       - "5678"
