@@ -88,7 +88,7 @@ CREATE TRIGGER update_custom_orders_modtime
     EXECUTE PROCEDURE update_modified_column();
 
 
-REATE TABLE IF NOT EXISTS user_intents (
+CREATE TABLE IF NOT EXISTS user_intents (
     intent_id SERIAL PRIMARY KEY,
     intent_key VARCHAR(50) UNIQUE NOT NULL,
     classification_guide TEXT,
