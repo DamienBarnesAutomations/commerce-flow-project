@@ -74,16 +74,27 @@ CREATE UNIQUE INDEX idx_one_funnel_order_per_user
 ON custom_orders (customer_id) 
 WHERE order_status_id IN ('DRAFT', 'AWAITING_APPROVAL');
 
+CREATE OR REPLACE FUNCTION update_modified_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
 
-CREATE TABLE IF NOT EXISTS user_intents (
+CREATE TRIGGER update_custom_orders_modtime
+    BEFORE UPDATE ON custom_orders
+    FOR EACH ROW
+    EXECUTE PROCEDURE update_modified_column();
+
+
+REATE TABLE IF NOT EXISTS user_intents (
     intent_id SERIAL PRIMARY KEY,
     intent_key VARCHAR(50) UNIQUE NOT NULL,
-    classification_guide TEXT, -- Why the AI should pick this
+    classification_guide TEXT,
     is_active BOOLEAN DEFAULT TRUE
 );
-
 CREATE INDEX IF NOT EXISTS idx_user_intents_intent_key ON user_intents(intent_key);
-
 
 CREATE TABLE IF NOT EXISTS user_intents_config (
     intent_key VARCHAR(50) REFERENCES user_intents (intent_key),
@@ -92,41 +103,27 @@ CREATE TABLE IF NOT EXISTS user_intents_config (
     sql_query TEXT DEFAULT ''
 );
 
-
--- 1. The core configuration fields
 CREATE TABLE IF NOT EXISTS order_config (
     field_id SERIAL PRIMARY KEY,
     field_key VARCHAR(50) UNIQUE NOT NULL,
     display_name VARCHAR(100) NOT NULL,
     field_type VARCHAR(20) NOT NULL CHECK (field_type IN ('string', 'integer', 'boolean', 'date', 'select')),
     scope VARCHAR(20) NOT NULL DEFAULT 'global' CHECK (scope IN ('global', 'tier')),
-    options JSONB DEFAULT '[]'::jsonb, -- Validated by trigger
+    options JSONB DEFAULT '[]'::jsonb,
     extraction_hint TEXT,
     sort_order INTEGER DEFAULT 0,
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+    CONSTRAINT enforce_option_structure CHECK (
+        jsonb_typeof(options) = 'array' AND 
+        (jsonb_array_length(options) = 0 OR jsonb_exists(options->0, 'value'))
+    )
 );
-
 CREATE INDEX IF NOT EXISTS idx_order_config_field_key ON order_config(field_key);
--- 2. Dedicated Rules table for hard constraints
-CREATE TABLE IF NOT EXISTS field_rules (
-    rule_id SERIAL PRIMARY KEY,
-    field_key VARCHAR(50) REFERENCES order_config(field_key) ON DELETE CASCADE,
-    rule_type VARCHAR(50) NOT NULL, -- 'min_value', 'dependency', 'stability', 'lead_time'
-    config JSONB NOT NULL, -- Parameters for the rule (e.g. {"days": 7})
-    error_message TEXT -- Custom bot response when rule is broken
-);
 
-ALTER TABLE order_config 
-ADD CONSTRAINT enforce_option_structure 
-CHECK (
-    jsonb_typeof(options) = 'array' AND 
-    (jsonb_array_length(options) = 0 OR jsonb_exists(options->0, 'value'))
-);
-
+-- Validation Function & Trigger for order_config
 CREATE OR REPLACE FUNCTION validate_order_config_integrity() 
 RETURNS trigger AS $$
 BEGIN
-    -- Options check (re-using the function for safety)
     IF NEW.options IS NOT NULL AND jsonb_typeof(NEW.options) = 'array' AND jsonb_array_length(NEW.options) > 0 THEN
         IF NOT EXISTS (
             SELECT 1 FROM jsonb_array_elements(NEW.options) AS opt 
@@ -138,6 +135,18 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_order_config
+    BEFORE INSERT OR UPDATE ON order_config
+    FOR EACH ROW EXECUTE FUNCTION validate_order_config_integrity();
+
+CREATE TABLE IF NOT EXISTS field_rules (
+    rule_id SERIAL PRIMARY KEY,
+    field_key VARCHAR(50) REFERENCES order_config(field_key) ON DELETE CASCADE,
+    rule_type VARCHAR(50) NOT NULL,
+    config JSONB NOT NULL,
+    error_message TEXT
+);
 
 CREATE TABLE order_review (
     id SERIAL PRIMARY KEY,
@@ -156,7 +165,7 @@ CREATE TABLE admin_user (
     admin_id VARCHAR(20) NOT NULL,
     source VARCHAR(50) NOT NULL, -- e.g., 'telegram', 'web'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)
+);
 
 
 INSERT INTO order_status (order_status_id, display_name, description, display_order) VALUES
