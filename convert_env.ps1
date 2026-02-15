@@ -1,31 +1,43 @@
-# 1. Define input and output
+# 1. Configuration
 $envFile = ".env"
 $outFile = "env_secrets.json"
 
+# 2. Check for the CURRENT_ENV bypass (from our first step)
+# This checks the environment variable of the Windows session
+if ($env:CURRENT_ENV -eq "dev") {
+    Write-Host "Environment is 'dev'. Skipping JSON conversion."
+    exit 0
+}
+
 if (Test-Path $envFile) {
-    # 2. Read file, filter out comments/empty lines, and remove 'export '
-    $entries = Get-Content $envFile | 
-        Where-Object { $_ -match '=' -and -not $_.StartsWith('#') } | 
-        ForEach-Object {
-            $cleanLine = $_ -replace '^export\s+', ''
-            # Split only on the FIRST equals sign to protect values containing '='
+    # 3. Initialize an [ordered] hashtable to preserve sequence
+    $jsonData = [ordered]@{}
+
+    # 4. Process the file line by line
+    Get-Content $envFile | ForEach-Object {
+        $line = $_.Trim()
+        
+        # Skip comments and empty lines
+        if ($line -match '^[^#].*=') {
+            # Remove 'export ' if present
+            $cleanLine = $line -replace '^export\s+', ''
+            
+            # Split only on the FIRST '=' to protect values with '=' in them
             $parts = $cleanLine.Split('=', 2)
             
-            # Create a custom object for each pair
-            [PSCustomObject]@{
-                key   = $parts[0].Trim()
-                value = $parts[1].Trim()
-            }
+            $key = $parts[0].Trim()
+            $value = $parts[1].Trim()
+            
+            # Add to our ordered dictionary
+            $jsonData[$key] = $value
         }
+    }
 
-    # 3. Use PowerShell's built-in JSON converter
-    # We transform the list of objects into a single dictionary (hash table)
-    $hashTable = @{}
-    foreach ($item in $entries) { $hashTable[$item.key] = $item.value }
+    # 5. Convert to JSON and save
+    # 'Compress' is optional; remove it if you want pretty-printed JSON
+    $jsonData | ConvertTo-Json | Out-File -FilePath $outFile -Encoding utf8
 
-    $hashTable | ConvertTo-Json | Out-File -FilePath $outFile -Encoding utf8
-
-    Write-Host "Success! env_secrets.json created without needing jq."
+    Write-Host "Done! Order maintained in $outFile"
 } else {
-    Write-Error ".env file not found."
+    Write-Warning "Could not find $envFile"
 }
