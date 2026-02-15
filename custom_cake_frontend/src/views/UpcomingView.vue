@@ -1,12 +1,8 @@
 <template>
   <div class="view-container">
     <div class="header-actions">
-      <div class="search-wrapper">
-        <input v-model="search" placeholder="Search by name or theme..." class="search-input" />
-      </div>
-      <div class="stats">
-        <span class="count-badge">{{ filteredOrders.length }} Upcoming Tasks</span>
-      </div>
+      <input v-model="search" placeholder="Search by name or theme..." class="search-input" />
+      <span class="count-badge">{{ filteredOrders.length }} Upcoming Tasks</span>
     </div>
 
     <div v-if="loading" class="status-message">
@@ -14,7 +10,7 @@
       <p>Loading your baking schedule...</p>
     </div>
 
-    <div v-else class="order-grid">
+    <div v-else class="order-grid upcoming-theme">
       <OrderCard 
         v-for="order in filteredOrders" 
         :key="order.order_id" 
@@ -40,60 +36,95 @@ const loading = ref(true);
 const search = ref('');
 
 const fetchUpcomingOrders = async () => {
+  loading.value = true;
   try {
-    // We filter for 'CONFIRMED' or 'PAID' statuses that aren't 'COMPLETED' yet
-    const response = await api.get('/orders?status=CONFIRMED,UPCOMING');
-    orders.value = response.data;
+    const response = await api.get('/upcoming');
+    const data = Array.isArray(response.data) ? response.data : [];
+    
+    // Filter out [ {} ] empty objects
+    orders.value = data.filter(order => order && order.order_id);
   } catch (err) {
     console.error("Error fetching upcoming orders:", err);
+    orders.value = [];
   } finally {
     loading.value = false;
   }
 };
 
 const filteredOrders = computed(() => {
-  return orders.value.filter(o => 
-    o.client_name.toLowerCase().includes(search.value.toLowerCase()) ||
-    o.cake_theme.toLowerCase().includes(search.value.toLowerCase())
-  ).sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+  const searchTerm = search.value.toLowerCase();
+  
+  return orders.value
+    .filter(o => {
+      // Using optional chaining to match your new data structure safely
+      const name = o.selections?.client_name?.toLowerCase() || '';
+      const theme = o.selections?.cake_theme?.toLowerCase() || '';
+      return name.includes(searchTerm) || theme.includes(searchTerm);
+    })
+    .sort((a, b) => {
+      // Sort by event date so the soonest cakes are at the top
+      const dateA = new Date(a.selections?.event_date || 0).getTime();
+      const dateB = new Date(b.selections?.event_date || 0).getTime();
+      return dateA - dateB;
+    });
 });
 
 onMounted(fetchUpcomingOrders);
 </script>
 
 <style scoped>
+/* Unified Layout Container */
+.view-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header & Search Styles (Matched to Review) */
 .header-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
   gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.search-wrapper {
+.search-input {
   flex: 1;
+  padding: 0.8rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
 }
 
-.stats {
+.count-badge {
+  background: #eee;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: bold;
+  color: #666;
   white-space: nowrap;
 }
 
+/* Unified Grid System */
 .order-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  align-items: start;
 }
 
-/* Specific styling for Upcoming View */
-:deep(.order-card) {
-  border-left: 6px solid #42b883; /* Solid Green for confirmed orders */
+@media (min-width: 1200px) {
+  .order-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+/* Upcoming-Specific Accents */
+.upcoming-theme :deep(.order-card) {
+  border-left: 6px solid #42b883; /* Green bar to indicate confirmed status */
 }
 
+/* Status & Loading */
 .status-message {
   display: flex;
   flex-direction: column;
@@ -103,7 +134,6 @@ onMounted(fetchUpcomingOrders);
   color: #666;
 }
 
-/* Simple Spinner */
 .spinner {
   width: 40px;
   height: 40px;
@@ -117,5 +147,16 @@ onMounted(fetchUpcomingOrders);
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #888;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
 }
 </style>

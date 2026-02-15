@@ -80,13 +80,14 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - N8N_PORT=5678
       - N8N_SECURE_COOKIE=false
+      - NODES_EXCLUDE=[]
     expose:
       - "5678"
     volumes:
       - ./flows2:/home/node/.n8n
       - ./public/images:/home/node/.n8n-files/public/images
       - ./n8n-workflows:/home/node/.n8n-files/workflows
-    entrypoint: ["/bin/sh", "/home/node/.n8n-files/workflows/n8n-init/n8n-import.sh"]
+    #entrypoint: ["/bin/sh", "/home/node/.n8n-files/workflows/n8n-init/n8n-import.sh"]
     depends_on:
       db:
         condition: service_healthy
@@ -221,6 +222,7 @@ services:
       - VITE_API_BASE_URL=${API_BASE_URL}
       - VITE_APP_TITLE=Custom Cake
       - DOMAIN_OR_IP=${DOMAIN_OR_IP}
+      - VITE_IMAGE_BASE_URL=${IMAGE_BASE_URL}
     depends_on:
       - n8n_app
       - python_app

@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS chat_sessions (
     customer_id VARCHAR(20) PRIMARY KEY,
     current_state VARCHAR(50) DEFAULT 'START',
     last_interaction TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    source VARCHAR(20) NOT NULL, -- e.g., 'telegram', 'whatsapp'
     last_ai_prompt TEXT
 );
 
@@ -51,6 +52,8 @@ CREATE TABLE IF NOT EXISTS custom_orders (
         "tiers": null,
         "cake_theme": null,
         "has_ac": null,
+        "special_note": null,
+        "image_reference": null,
         "tier_definitions": [
             {
                 "tier_index": 1,
@@ -144,6 +147,7 @@ CREATE TABLE order_review (
     user_note TEXT,
     admin_note TEXT,
     review_status VARCHAR(20) DEFAULT 'PENDING', -- Can be 'PENDING', 'ACCEPTED', 'REJECTED'
+    is_processed BOOLEAN DEFAULT FALSE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -158,8 +162,8 @@ CREATE TABLE admin_user (
 INSERT INTO order_status (order_status_id, display_name, description, display_order) VALUES
 ('DRAFT', 'Draft', 'Order is currently being edited and has not been submitted.', 1),
 ('AWAITING_APPROVAL', 'Awaiting Approval', 'Order is pending internal verification by a supervisor.', 2),
-('AWAITING_DEPOSIT', 'Awaiting Deposit', 'Payment is required before the order can proceed to production.', 3),
-('AWAITING_REVIEW', 'In Review', 'The order is being reviewed for quality or specifications.', 4),
+('AWAITING_DEPOSIT', 'Awaiting Deposit', 'Payment is required before the order can proceed to production.', 4),
+('AWAITING_REVIEW', 'In Review', 'The order is being reviewed for quality or specifications.', 3),
 ('CANCELLED', 'Cancelled', 'The order was stopped and will not be fulfilled.', 5),
 ('COMPLETED', 'Completed', 'The order has been successfully fulfilled and closed.', 6);
 
@@ -241,7 +245,15 @@ INSERT INTO order_config (
 ('layers', 'Internal Layers', 'integer', 'tier', 
     '[{"label": "2 Layers", "value": 2}, {"label": "3 Layers", "value": 3}, {"label": "4 Layers", "value": 4}]',
     'Count the horizontal sponge slices inside a single tier. Often called "double layer" or "triple layer." Distinct from the number of Tiers.',
-    100, true);
+    100, true),
+('special_note', 'Special Instructions', 'string', 'global', '[]',
+    'Capture any miscellaneous requests, allergies, or specific design details not covered by other fields. Look for phrases like "Make sure to...", "Also...", or "Please include...". Do not include tier sizes or flavors here.',
+    110, true),
+
+-- Image: Capturing visual references
+('image_reference', 'Inspiration Image', 'string', 'global', '[]',
+    'Extract the URL or file identifier of any images shared by the user. If the user says "like this photo" or "attached is a sketch," link that reference here.',
+    120, true);
 
 
 INSERT INTO field_rules (field_key, rule_type, config, error_message) VALUES
@@ -253,4 +265,5 @@ INSERT INTO field_rules (field_key, rule_type, config, error_message) VALUES
 
 -- Structural Stability (The Cake-Specific Logic)
 ('size', 'min_base_for_tiers', '{"tiers": 2, "min_inches": 8}', 'For a 2-tier cake, the bottom tier must be at least 8 inches.'),
-('size', 'min_base_for_tiers', '{"tiers": 3, "min_inches": 10}', 'A 3-tier cake needs a sturdy 10-inch base to stay upright!');
+('size', 'min_base_for_tiers', '{"tiers": 3, "min_inches": 10}', 'A 3-tier cake needs a sturdy 10-inch base to stay upright!'),
+('special_note', 'max_length', '{"max_chars": 500}', 'Your special note is too long!');

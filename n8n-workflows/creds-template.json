@@ -8,7 +8,7 @@
             "host": "db",
             "database": "message_admin",
             "user": "message_admin_user",
-            "password": "${DB_PASSWORD}"
+            "password": "6dD5ES6zT34gTHtJ"
         },
         "type": "postgres",
         "isManaged": false,
@@ -23,7 +23,7 @@
         "id": "td8a7Y8V7pDvKjeX",
         "name": "Admin Telegram Account",
         "data": {
-            "accessToken": "${TELEGRAM_BOT_TOKEN}"
+            "accessToken": "8206583573:AAHDmB4TArHSNG4NtYiVEDBQIJlWBh-CC1A"
         },
         "type": "telegramApi",
         "isManaged": false,
@@ -38,7 +38,7 @@
         "id": "YihWRRYitm7Ck7WC",
         "name": "Gemini Account",
         "data": {
-            "apiKey": "${GEMINI_API_KEY}"
+            "apiKey": "AIzaSyClFTx19WCITb3Wfkhq9Nin2_70t2OSfl4"
         },
         "type": "googlePalmApi",
         "isManaged": false,
@@ -56,7 +56,7 @@
             "host": "db",
             "database": "custom_order",
             "user": "custom_order_user",
-            "password": "${DB_PASSWORD}"
+            "password": "6dD5ES6zT34gTHtJ"
         },
         "type": "postgres",
         "isManaged": false,
@@ -74,7 +74,7 @@
             "host": "db",
             "database": "accounting",
             "user": "accounting_user",
-            "password": "${DB_PASSWORD}"
+            "password": "6dD5ES6zT34gTHtJ"
         },
         "type": "postgres",
         "isManaged": false,
@@ -92,7 +92,7 @@
             "host": "db",
             "database": "pos",
             "user": "pos_user",
-            "password": "${DB_PASSWORD}"
+            "password": "6dD5ES6zT34gTHtJ"
         },
         "type": "postgres",
         "isManaged": false,
@@ -107,7 +107,7 @@
         "id": "emFEEI5og3xbekD3",
         "name": "Cake Order Telegram Bot",
         "data": {
-            "accessToken": "${CAKE_ORDER_TELEGRAM_BOT_TOKEN}"
+            "accessToken": "8441434462:AAHoxUBYjwFO5yiNHjQMgtOfBoTPaZpukTo"
         },
         "type": "telegramApi",
         "isManaged": false,

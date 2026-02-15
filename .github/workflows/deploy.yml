@@ -88,12 +88,15 @@ jobs:
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             sudo mkdir /app/flows2 /app/public/ /app/public/images /app/public/images/product /app/public/images/tmp
+            sudo mkdir /app/public/images/cake-order /app/public/images/cake-order/tmp
 
             sudo chown -R 1000:1000 /app/flows2
             sudo chown -R 1000:1000 /app/public
             sudo chown -R 1000:1000 /app/public/images
             sudo chown -R 1000:1000 /app/public/images/product
             sudo chown -R 1000:1000 /app/public/images/tmp
+            sudo chown -R 1000:1000 /app/public/images/cake-order
+            sudo chown -R 1000:1000 /app/public/images/cake-order/tmp
             
             sudo chown -R 1000:1000 /app/n8n-workflows
 
