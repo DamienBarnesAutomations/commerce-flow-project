@@ -1,22 +1,41 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { ref } from 'vue'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
+
+const route = useRoute()
+const isMobileMenuOpen = ref(false)
+
+const toggleMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
+}
+
+const closeMenu = () => {
+  isMobileMenuOpen.value = false
+}
 </script>
 
 <template>
   <div class="admin-container">
-    <aside class="sidebar">
+    <div 
+      v-if="isMobileMenuOpen" 
+      class="sidebar-overlay" 
+      @click="closeMenu"
+    ></div>
+
+    <aside :class="['sidebar', { 'is-open': isMobileMenuOpen }]">
       <div class="sidebar-header">
         <h2>🎂 Cake Admin</h2>
+        <button class="mobile-close-btn" @click="toggleMenu">×</button>
       </div>
       
       <nav class="sidebar-nav">
-        <RouterLink to="/upcoming" class="nav-item">
+        <RouterLink to="/upcoming" class="nav-item" @click="closeMenu">
           <span class="icon">📅</span> Upcoming Orders
         </RouterLink>
-        <RouterLink to="/review" class="nav-item">
+        <RouterLink to="/review" class="nav-item" @click="closeMenu">
           <span class="icon">🔍</span> Review Orders
         </RouterLink>
-        <RouterLink to="/history" class="nav-item">
+        <RouterLink to="/history" class="nav-item" @click="closeMenu">
           <span class="icon">📜</span> Historic Orders
         </RouterLink>
       </nav>
@@ -24,7 +43,10 @@ import { RouterLink, RouterView } from 'vue-router'
 
     <main class="main-content">
       <header class="top-bar">
-        <h1>{{ $route.name }}</h1>
+        <button class="hamburger-btn" @click="toggleMenu">
+          ☰
+        </button>
+        <h1>{{ route.name }}</h1>
       </header>
       
       <div class="content-wrapper">
@@ -35,8 +57,6 @@ import { RouterLink, RouterView } from 'vue-router'
 </template>
 
 <style>
-/* Global resets for the admin layout */
-
 /* 1. Complete Reset */
 * {
   margin: 0;
@@ -45,33 +65,19 @@ import { RouterLink, RouterView } from 'vue-router'
 }
 
 body, html, #app {
-  margin: 0;
-  padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden; /* Prevents double scrollbars */
-}
-
-/* 2. Your Admin Layout */
-.admin-container {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  background-color: #f4f7f6;
-}
-
-body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+  overflow: hidden;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
+/* 2. Layout Structure */
 .admin-container {
   display: flex;
   height: 100vh;
   width: 100vw;
   background-color: #f4f7f6;
+  position: relative;
 }
 
 /* Sidebar Styling */
@@ -81,12 +87,29 @@ body, html {
   color: white;
   display: flex;
   flex-direction: column;
+  z-index: 1001;
+  transition: transform 0.3s ease;
 }
 
 .sidebar-header {
   padding: 2rem;
   text-align: center;
   border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.mobile-close-btn {
+  display: none;
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
 }
 
 .sidebar-nav {
@@ -109,7 +132,7 @@ body, html {
 }
 
 .nav-item.router-link-active {
-  background-color: #42b883; /* Vue Green */
+  background-color: #42b883;
   color: white;
   border-left: 4px solid #fff;
 }
@@ -125,15 +148,72 @@ body, html {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  min-width: 0; /* Prevents flex items from overflowing */
 }
 
 .top-bar {
   background: white;
   padding: 1rem 2rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
 }
 
 .content-wrapper {
   padding: 2rem;
+}
+
+/* 3. Mobile Responsiveness */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    transform: translateX(-100%); /* Hide sidebar */
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0); /* Show sidebar */
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+  }
+
+  .hamburger-btn, .mobile-close-btn {
+    display: block;
+  }
+
+  .top-bar {
+    padding: 0.8rem 1rem;
+  }
+
+  .top-bar h1 {
+    font-size: 1.25rem;
+  }
+
+  .content-wrapper {
+    padding: 1rem;
+  }
 }
 </style>

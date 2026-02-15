@@ -1,7 +1,10 @@
 <template>
   <div class="view-container">
     <div class="header-actions">
-      <input v-model="search" placeholder="Search pending reviews..." class="search-input" />
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input v-model="search" placeholder="Search pending reviews..." class="search-input" />
+      </div>
       <span class="count-badge">{{ filteredOrders.length }} Pending</span>
     </div>
 
@@ -33,20 +36,14 @@ const loading = ref(true);
 const search = ref('');
 
 const fetchOrders = async () => {
-  loading.value = true; // Ensure loading starts
+  loading.value = true;
   try {
     const response = await api.get('/review');
-    
-    // 1. Ensure we have an array
     const rawData = Array.isArray(response.data) ? response.data : [];
-
-    // 2. Filter out empty objects [ {} ] or invalid entries
-    // This checks if the object actually has an order_id
     orders.value = rawData.filter(order => order && Object.keys(order).length > 0 && order.order_id);
-    
   } catch (err) {
     console.error("API Error:", err);
-    orders.value = []; // Reset to empty array on error
+    orders.value = [];
   } finally {
     loading.value = false;
   }
@@ -55,41 +52,28 @@ const fetchOrders = async () => {
 const filteredOrders = computed(() => {
   const searchTerm = search.value.toLowerCase();
   return orders.value.filter(o => {
-    // Safety check: Ensure selections exists before calling toLowerCase
     const name = o.selections?.client_name?.toLowerCase() || '';
     const theme = o.selections?.cake_theme?.toLowerCase() || '';
-    
     return name.includes(searchTerm) || theme.includes(searchTerm);
   });
 });
 
 onMounted(fetchOrders);
 </script>
+
 <style scoped>
 .view-container {
   padding: 2rem;
-  max-width: 1400px; /* Limits the stretch on ultra-wide monitors */
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 .order-grid {
   display: grid;
-  /* This tells the grid: 
-     1. Try to fit as many columns as possible.
-     2. Each column must be at least 280px.
-     3. If there is extra space, share it equally (1fr).
-  */
+  /* Default: stack on mobile, grid on tablets/desktop */
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem; /* Space between cards */
+  gap: 1.5rem;
   align-items: start;
-}
-
-/* Responsive adjustment: 
-   If you specifically want 4 columns on large screens regardless of width */
-@media (min-width: 1200px) {
-  .order-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 /* Header & Search Styles */
@@ -100,12 +84,32 @@ onMounted(fetchOrders);
   margin-bottom: 2rem;
 }
 
-.search-input {
+.search-wrapper {
+  position: relative;
   flex: 1;
-  padding: 0.8rem 1rem;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.8rem 1rem 0.8rem 2.5rem; /* Space for icon */
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: #42b883;
 }
 
 .count-badge {
@@ -115,5 +119,50 @@ onMounted(fetchOrders);
   font-weight: bold;
   color: #666;
   white-space: nowrap;
+}
+
+.status-message {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #999;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #eee;
+}
+
+/* --- Responsive Adjustments --- */
+
+@media (max-width: 600px) {
+  .view-container {
+    padding: 1rem; /* Smaller padding on phones */
+  }
+
+  .header-actions {
+    flex-direction: column; /* Stack search and badge */
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+
+  .count-badge {
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  .order-grid {
+    grid-template-columns: 1fr; /* Single column on small phones */
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .order-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 </style>

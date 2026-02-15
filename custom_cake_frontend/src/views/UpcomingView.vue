@@ -1,8 +1,11 @@
 <template>
   <div class="view-container">
     <div class="header-actions">
-      <input v-model="search" placeholder="Search by name or theme..." class="search-input" />
-      <span class="count-badge">{{ filteredOrders.length }} Upcoming Tasks</span>
+      <div class="search-wrapper">
+        <span class="search-icon">📅</span>
+        <input v-model="search" placeholder="Search by name or theme..." class="search-input" />
+      </div>
+      <span class="count-badge">{{ filteredOrders.length }} Upcoming</span>
     </div>
 
     <div v-if="loading" class="status-message">
@@ -19,7 +22,7 @@
     </div>
 
     <div v-if="!loading && filteredOrders.length === 0" class="empty-state">
-      <div class="empty-icon">📅</div>
+      <div class="empty-icon">🍰</div>
       <h3>No upcoming orders</h3>
       <p>Enjoy the break! New orders will appear here once they are reviewed.</p>
     </div>
@@ -40,8 +43,6 @@ const fetchUpcomingOrders = async () => {
   try {
     const response = await api.get('/upcoming');
     const data = Array.isArray(response.data) ? response.data : [];
-    
-    // Filter out [ {} ] empty objects
     orders.value = data.filter(order => order && order.order_id);
   } catch (err) {
     console.error("Error fetching upcoming orders:", err);
@@ -56,13 +57,12 @@ const filteredOrders = computed(() => {
   
   return orders.value
     .filter(o => {
-      // Using optional chaining to match your new data structure safely
       const name = o.selections?.client_name?.toLowerCase() || '';
       const theme = o.selections?.cake_theme?.toLowerCase() || '';
       return name.includes(searchTerm) || theme.includes(searchTerm);
     })
     .sort((a, b) => {
-      // Sort by event date so the soonest cakes are at the top
+      // Primary sort: Date (Soonest first)
       const dateA = new Date(a.selections?.event_date || 0).getTime();
       const dateB = new Date(b.selections?.event_date || 0).getTime();
       return dateA - dateB;
@@ -73,14 +73,13 @@ onMounted(fetchUpcomingOrders);
 </script>
 
 <style scoped>
-/* Unified Layout Container */
 .view-container {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Header & Search Styles (Matched to Review) */
+/* Header & Search Styles */
 .header-actions {
   display: flex;
   align-items: center;
@@ -88,12 +87,32 @@ onMounted(fetchUpcomingOrders);
   margin-bottom: 2rem;
 }
 
-.search-input {
+.search-wrapper {
+  position: relative;
   flex: 1;
-  padding: 0.8rem 1rem;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.8rem 1rem 0.8rem 2.5rem;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  border-color: #42b883;
 }
 
 .count-badge {
@@ -105,7 +124,7 @@ onMounted(fetchUpcomingOrders);
   white-space: nowrap;
 }
 
-/* Unified Grid System */
+/* Grid System */
 .order-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -113,15 +132,9 @@ onMounted(fetchUpcomingOrders);
   align-items: start;
 }
 
-@media (min-width: 1200px) {
-  .order-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-/* Upcoming-Specific Accents */
+/* Confirmed Status Indicator */
 .upcoming-theme :deep(.order-card) {
-  border-left: 6px solid #42b883; /* Green bar to indicate confirmed status */
+  border-left: 6px solid #42b883;
 }
 
 /* Status & Loading */
@@ -130,7 +143,7 @@ onMounted(fetchUpcomingOrders);
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 300px;
+  padding: 4rem 1rem;
   color: #666;
 }
 
@@ -151,12 +164,45 @@ onMounted(fetchUpcomingOrders);
 
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 4rem 1rem;
   color: #888;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #eee;
 }
 
 .empty-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 600px) {
+  .view-container {
+    padding: 1rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .count-badge {
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  .order-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .order-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 </style>

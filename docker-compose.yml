@@ -81,6 +81,11 @@ services:
       - N8N_PORT=5678
       - N8N_SECURE_COOKIE=false
       - NODES_EXCLUDE=[]
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=90
+      - EXECUTIONS_DATA_PRUNE_MAX_COUNT=2500
+      - EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=false
+      - N8N_LOG_LEVEL=warn
     expose:
       - "5678"
     volumes:

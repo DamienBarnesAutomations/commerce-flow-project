@@ -1,10 +1,15 @@
 <template>
   <div class="view-container">
     <div class="header-actions">
-      <input v-model="search" placeholder="Search order history..." class="search-input" />
+      <div class="search-wrapper">
+        <span class="search-icon">📜</span>
+        <input v-model="search" placeholder="Search order history by name or ID..." class="search-input" />
+      </div>
     </div>
 
-    <div v-if="loading" class="status-message">Loading archives...</div>
+    <div v-if="loading" class="status-message">
+      <div class="spinner"></div> Loading archives...
+    </div>
 
     <div v-else class="order-grid grayscale-cards">
       <OrderCard 
@@ -34,11 +39,9 @@ const fetchOrders = async () => {
   try {
     const response = await api.get('/historic');
     
-    // 1. Ensure we have an array
     const rawData = Array.isArray(response.data) ? response.data : [];
 
-    // 2. Filter out empty objects [ {} ] and ensure it's a valid order
-    // 3. Sort by date (descending: newest first)
+    // Filter, sanitize, and sort by date descending
     orders.value = rawData
       .filter(order => order && order.order_id)
       .sort((a, b) => {
@@ -56,70 +59,115 @@ const fetchOrders = async () => {
 };
 
 const filteredOrders = computed(() => {
-  return orders.value.filter(o => 
-    o.client_name.toLowerCase().includes(search.value.toLowerCase()) ||
-    o.order_id.toString().includes(search.value)
-  );
+  const term = search.value.toLowerCase();
+  return orders.value.filter(o => {
+    // Check selections.client_name and order_id
+    const name = o.selections?.client_name?.toLowerCase() || '';
+    const id = o.order_id?.toString() || '';
+    return name.includes(term) || id.includes(term);
+  });
 });
 
 onMounted(fetchOrders);
 </script>
 
 <style scoped>
-/* Optional: Make history cards look slightly "archived" */
-.grayscale-cards :deep(.order-card) {
-  border-left: 4px solid #999;
-  opacity: 0.85;
-}
-
 .view-container {
   padding: 2rem;
-  max-width: 1400px; /* Limits the stretch on ultra-wide monitors */
+  max-width: 1400px;
   margin: 0 auto;
+}
+
+/* History-specific styling to differentiate from active orders */
+.grayscale-cards :deep(.order-card) {
+  border-left: 4px solid #bdc3c7;
+  filter: grayscale(0.4);
+  opacity: 0.9;
+  transition: all 0.3s ease;
+}
+
+.grayscale-cards :deep(.order-card:hover) {
+  filter: grayscale(0);
+  opacity: 1;
+  border-left-color: #7f8c8d;
 }
 
 .order-grid {
   display: grid;
-  /* This tells the grid: 
-     1. Try to fit as many columns as possible.
-     2. Each column must be at least 280px.
-     3. If there is extra space, share it equally (1fr).
-  */
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem; /* Space between cards */
+  gap: 1.5rem;
   align-items: start;
-}
-
-/* Responsive adjustment: 
-   If you specifically want 4 columns on large screens regardless of width */
-@media (min-width: 1200px) {
-  .order-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 /* Header & Search Styles */
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
   margin-bottom: 2rem;
 }
 
-.search-input {
+.search-wrapper {
+  position: relative;
   flex: 1;
-  padding: 0.8rem 1rem;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.8rem 1rem 0.8rem 2.5rem;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
+  outline: none;
 }
 
-.count-badge {
-  background: #eee;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-weight: bold;
+.search-input:focus {
+  border-color: #999;
+}
+
+.status-message {
+  text-align: center;
+  padding: 3rem;
   color: #666;
-  white-space: nowrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #999;
+  background: #fdfdfd;
+  border-radius: 12px;
+  border: 2px dashed #ddd;
+}
+
+/* --- Responsive Adjustments --- */
+
+@media (max-width: 600px) {
+  .view-container {
+    padding: 1rem;
+  }
+
+  .order-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .header-actions {
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .order-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 </style>
