@@ -1,3 +1,5 @@
+\c custom_order
+
 INSERT INTO user_intents_config (
     intent_key,
     is_ai_action,
