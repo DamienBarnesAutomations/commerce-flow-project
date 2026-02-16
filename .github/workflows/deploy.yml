@@ -132,18 +132,3 @@ jobs:
             sudo docker image prune -f
           EOF
       
-      - name: Set Telegram Webhook
-        run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            set -a
-            source /app/.env
-            set +a
-
-            echo "Setting Telegram webhook to: $TELEGRAM_WEBHOOK_URL"
-
-            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
-              -d "url=${TELEGRAM_WEBHOOK_URL}"
-
-            curl -s -X POST "https://api.telegram.org/bot${CAKE_ORDER_TELEGRAM_BOT_TOKEN}/setWebhook" \
-              -d "url=${CAKE_ORDER_TELEGRAM_WEBHOOK_URL}" 
-          EOF

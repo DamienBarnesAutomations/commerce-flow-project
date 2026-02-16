@@ -51,24 +51,6 @@
         "resolverId": null
     },
     {
-        "updatedAt": "2026-02-15T15:13:21.026Z",
-        "createdAt": "2026-02-06T12:08:40.281Z",
-        "id": "LleDUwLucS7vZHjv",
-        "name": "POS DB Credentials",
-        "data": {
-            "host": "db",
-            "database": "pos",
-            "user": "pos_user",
-            "password": "={{$env_DB_PASSWORD}}"
-        },
-        "type": "postgres",
-        "isManaged": false,
-        "isGlobal": false,
-        "isResolvable": false,
-        "resolvableAllowFallback": false,
-        "resolverId": null
-    },
-    {
         "updatedAt": "2026-02-15T15:13:41.359Z",
         "createdAt": "2026-02-06T08:53:21.589Z",
         "id": "tdeYwbyCFeBuflzs",
@@ -110,6 +92,24 @@
             "accessToken": "={{$env.TELEGRAM_BOT_TOKEN}}"
         },
         "type": "telegramApi",
+        "isManaged": false,
+        "isGlobal": false,
+        "isResolvable": false,
+        "resolvableAllowFallback": false,
+        "resolverId": null
+    },
+    {
+        "updatedAt": "2026-02-16T15:11:59.642Z",
+        "createdAt": "2026-02-06T12:08:40.281Z",
+        "id": "LleDUwLucS7vZHjv",
+        "name": "POS DB Credentials",
+        "data": {
+            "host": "db",
+            "database": "pos",
+            "user": "pos_user",
+            "password": "={{$env.DB_PASSWORD}}"
+        },
+        "type": "postgres",
         "isManaged": false,
         "isGlobal": false,
         "isResolvable": false,

@@ -3,13 +3,14 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 import os
+from init import init
 from handlers.accounting_message_handler import router as accounting_router
 from handlers.pos_message_handler import router as pos_router
 from handlers.telegram_admin_message_handler import router as telegram_admin_router
 from handlers.password_handler import router as password_router
 from handlers.cake_order_telegram_handler import router as cake_order_telegram_router
-
 from handlers.cake_order_manager_handler import router as cake_order_manager_router
+
 
 app = FastAPI(title="Python n8n Integration API")
 N8N_URL = os.getenv('N8N_INTERNAL_URL', 'Not Set')
@@ -22,7 +23,7 @@ app.include_router(password_router)
 app.include_router(cake_order_telegram_router)
 app.include_router(cake_order_manager_router)
 
-
+init()  
 
 origins = [
     DOMAIN_OR_IP,"https://api.telegram.org"

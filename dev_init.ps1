@@ -43,23 +43,4 @@ Write-Host "Applying permissions to acme.json..."
 docker exec -it traefik sh -c "chmod 600 /letsencrypt/acme.json"
 
 
-# 6. Set Telegram Webhooks
-Write-Host "Updating Telegram webhooks..." -ForegroundColor Cyan
-if (Test-Path ".env") {
-    Get-Content .env | ForEach-Object {
-        if ($_ -match "^(?<key>[^=]+)=(?<value>.*)$") {
-            $k = $Matches.key.Trim(); $v = $Matches.value.Trim()
-            Set-Item -Path "Env:$k" -Value $v
-        }
-    }
-
-    try {
-        Invoke-RestMethod -Method Post -Uri "https://api.telegram.org/bot$($env:TELEGRAM_BOT_TOKEN)/setWebhook?url=$($env:TELEGRAM_WEBHOOK_URL)" | Out-Null
-        Invoke-RestMethod -Method Post -Uri "https://api.telegram.org/bot$($env:CAKE_ORDER_TELEGRAM_BOT_TOKEN)/setWebhook?url=$($env:CAKE_ORDER_TELEGRAM_WEBHOOK_URL)" | Out-Null
-        Write-Host "Success: Webhooks updated." -ForegroundColor Green
-    } catch {
-        Write-Host "Warning: Webhook update failed." -ForegroundColor Yellow
-    }
-}
-
 Write-Host "Setup Complete! Local environment is mirrored from server." -ForegroundColor Green
