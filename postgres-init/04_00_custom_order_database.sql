@@ -96,13 +96,6 @@ CREATE TABLE IF NOT EXISTS user_intents (
 );
 CREATE INDEX IF NOT EXISTS idx_user_intents_intent_key ON user_intents(intent_key);
 
-CREATE TABLE IF NOT EXISTS user_intents_config (
-    intent_key VARCHAR(50) REFERENCES user_intents (intent_key),
-    is_ai_action boolean DEFAULT FALSE,
-    response_template TEXT DEFAULT '',
-    sql_query TEXT DEFAULT ''
-);
-
 CREATE TABLE IF NOT EXISTS order_config (
     field_id SERIAL PRIMARY KEY,
     field_key VARCHAR(50) UNIQUE NOT NULL,
