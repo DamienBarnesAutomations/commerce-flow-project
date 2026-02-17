@@ -19,6 +19,11 @@ const router = createRouter({
       name: 'Historic Orders',
       component: () => import('../views/HistoryView.vue')
     },
+    {
+      path: '/chat-logs',
+      name: 'Chat Logs',
+      component: () => import('../views/ChatView.vue')
+    },
     // Redirect / to /review by default
     { path: '/', redirect: '/upcoming' }
   ]

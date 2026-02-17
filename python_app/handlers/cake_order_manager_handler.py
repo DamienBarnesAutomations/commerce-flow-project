@@ -16,6 +16,9 @@ GET_CAKE_ORDER_REVIEW_WEBHOOK = f"{N8N_URL}webhook/cakeOrder/review"
 GET_CAKE_ORDER_UPCOMING_WEBHOOK = f"{N8N_URL}webhook/cakeOrder/upcoming"
 GET_CAKE_ORDER_HISTORIC_WEBHOOK = f"{N8N_URL}webhook/cakeOrder/historic"
 PERFORM_REVIEW_WEBHOOK = f"{N8N_URL}webhook/cakeOrder/performReview"
+GET_CAKE_ORDER_CHAT_LOGS_WEBHOOK = f"{N8N_URL}webhook/cakeOrder/chatLogs"
+GET_CAKE_ORDER_CHAT_SESSIONS_WEBHOOK = f"{N8N_URL}webhook/cakeOrder/chatSessions"
+SEND_CHAT_MESSAGE_WEBHOOK = f"{N8N_URL}webhook/cakeOrder/sendChatMessage"
 
 
 router = APIRouter(
@@ -26,12 +29,15 @@ router = APIRouter(
 async def get(request: Request, url):
     logger.info("Received request for {url}}")
     logger.info(f"Request Host: {request.client}")
+
+    params = request.query_params
+    
     async with httpx.AsyncClient() as client:
         try:
             logger.info(f"Calling n8n webhook at: {url}")
             
             # Make the call to n8n
-            response = await client.get(url)
+            response = await client.get(url, params=params)
             
             # Log response status
             logger.info(f"n8n responded with status: {response.status_code}")
@@ -75,6 +81,16 @@ async def get_upcoming_orders(request: Request):
 async def get_historic_orders(request: Request):
     # Fixed variable name
     return await get(request, GET_CAKE_ORDER_HISTORIC_WEBHOOK)
+
+@router.get("/chatLogs")
+async def get_chat_logs(request: Request):
+    # Fixed variable name
+    return await get(request, GET_CAKE_ORDER_CHAT_LOGS_WEBHOOK)
+
+@router.get("/chatSessions")
+async def get_chat_sessions(request: Request):
+    # Fixed variable name
+    return await get(request, GET_CAKE_ORDER_CHAT_SESSIONS_WEBHOOK)
 
 # Inside your get/post helper functions, fix the logger:
 # logger.info(f"Received request for {url}"
@@ -123,6 +139,10 @@ async def post(request: Request, url):
 @router.post("/performReview")
 async def create_perform_review(request: Request):
     return await post(request, PERFORM_REVIEW_WEBHOOK)
+
+@router.post("/sendChatMessage")
+async def create_send_chat_message(request: Request):
+    return await post(request, SEND_CHAT_MESSAGE_WEBHOOK)
 
 
 

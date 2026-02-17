@@ -153,6 +153,10 @@ CREATE TABLE order_review (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX IF NOT EXISTS idx_order_review_customer_id ON order_review(customer_id);
+CREATE INDEX IF NOT EXISTS idx_order_review_order_id ON order_review(order_id);
+
+
 CREATE TABLE admin_user (
     id SERIAL PRIMARY KEY,
     admin_id VARCHAR(20) NOT NULL,
@@ -160,6 +164,15 @@ CREATE TABLE admin_user (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE chat_logs (
+    id SERIAL PRIMARY KEY,
+    customer_id VARCHAR(20) NOT NULL,
+    customer_message TEXT NOT NULL,
+    response TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_logs_customer_id ON chat_logs(customer_id);
 
 INSERT INTO order_status (order_status_id, display_name, description, display_order) VALUES
 ('DRAFT', 'Draft', 'Order is currently being edited and has not been submitted.', 1),

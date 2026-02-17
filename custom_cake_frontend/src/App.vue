@@ -38,6 +38,9 @@ const closeMenu = () => {
         <RouterLink to="/history" class="nav-item" @click="closeMenu">
           <span class="icon">📜</span> Historic Orders
         </RouterLink>
+        <RouterLink to="/chat-logs" class="nav-item" @click="closeMenu">
+          <span class="icon">💬</span> Chat Logs
+        </RouterLink>
       </nav>
     </aside>
 
