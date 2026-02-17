@@ -3,7 +3,7 @@ set -e
 
 echo "Injecting environment variables into credentials template..."
 
-eval "echo \"$(sed 's/"/\\"/g' /home/node/.n8n-files/workflows/n8n-init/creds-template.json)\"" > /tmp/creds_to_import.json    
+cp /home/node/.n8n-files/workflows/n8n-init/creds-template.json /tmp/creds_to_import.json    
   
 echo "Importing credentials..."
 n8n import:credentials --input=/tmp/creds_to_import.json
