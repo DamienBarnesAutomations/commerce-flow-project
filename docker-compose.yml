@@ -90,6 +90,13 @@ services:
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
       - SITE_ADMIN_USER=${SITE_ADMIN_USER}
       - SITE_ADMIN_PASSWORD=${SITE_ADMIN_PASSWORD}
+      - CAKE_ORDER_WHATSAPP_BOT_TOKEN=${CAKE_ORDER_WHATSAPP_BOT_TOKEN}
+      - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}
+      - CAKE_ORDER_WHATSAPP_PHONE_NUMBER_ID=${CAKE_ORDER_WHATSAPP_PHONE_NUMBER_ID}
+      - CAKE_ORDER_WHATSAPP_WEBHOOK_URL=${CAKE_ORDER_WHATSAPP_WEBHOOK_URL}
+      - WHATSAPP_CLIENT_ID=${WHATSAPP_CLIENT_ID}
+      - WHATSPP_CLIENT_SECRET=${WHATSPP_CLIENT_SECRET}
+      - WHATSAPP_BUSINESS_ACCOUNT_ID=${WHATSAPP_BUSINESS_ACCOUNT_ID}
     expose:
       - "5678"
     volumes:
@@ -244,7 +251,7 @@ services:
     labels:
       - "traefik.enable=true"
 
-      - "traefik.http.routers.python-api-public.rule=Host(`${DOMAIN_OR_IP}`) && (PathPrefix(`/api/telegram`) || PathPrefix(`/api/cakeOrder`))"
+      - "traefik.http.routers.python-api-public.rule=Host(`${DOMAIN_OR_IP}`) && (PathPrefix(`/api/telegram`) || PathPrefix(`/api/cakeOrder`) || PathPrefix(`/api/whatsapp`))"
       - "traefik.http.routers.python-api-public.entrypoints=websecure"
       - "traefik.http.routers.python-api-public.tls.certresolver=myresolver"
       - "traefik.http.routers.python-api-public.tls.domains[0].main=${BASE_DOMAIN}"
@@ -274,6 +281,10 @@ services:
       - CAKE_ORDER_TELEGRAM_BOT_TOKEN=${CAKE_ORDER_TELEGRAM_BOT_TOKEN}
       - TELEGRAM_WEBHOOK_URL=${TELEGRAM_WEBHOOK_URL}
       - CAKE_ORDER_TELEGRAM_WEBHOOK_URL=${CAKE_ORDER_TELEGRAM_WEBHOOK_URL}
+      - CAKE_ORDER_WHATSAPP_BOT_TOKEN=${CAKE_ORDER_WHATSAPP_BOT_TOKEN}
+      - CAKE_ORDER_WHATSAPP_WEBHOOK_URL=${CAKE_ORDER_WHATSAPP_WEBHOOK_URL}
+      - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}
+      - CAKE_ORDER_WHATSAPP_PHONE_NUMBER_ID=${CAKE_ORDER_WHATSAPP_PHONE_NUMBER_ID}
     depends_on:
       - n8n_app
 

@@ -26,8 +26,9 @@ Write-Host "Creating local folder structure..." -ForegroundColor Cyan
 $folders = @(
     "flows2", 
     "public/images/product", 
-    "public/images/tmp", 
-    "public/images/cake-order/tmp", 
+    "public/images/tmp",
+    "public/images/cake-orders/", 
+    "public/images/cake-orders/tmp", 
     "n8n-workflows"
 )
 

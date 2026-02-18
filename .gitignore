@@ -9,6 +9,8 @@ dev/
 .env*
 public/images/products/*
 public/images/tmp/*
+public/images/cake-orders/*
+public/images/cake-orders/tmp/*
 npm-data
 npm-letsencrypt/*
 certs/*

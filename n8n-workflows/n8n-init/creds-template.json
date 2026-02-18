@@ -1,5 +1,37 @@
 [
     {
+        "updatedAt": "2026-02-18T16:46:16.991Z",
+        "createdAt": "2026-02-18T14:40:27.761Z",
+        "id": "CKpKmjSeh3n4V1rq",
+        "name": "WhatsApp OAuth account",
+        "data": {
+            "clientId": "={{$env.WHATSAPP_CLIENT_ID}}",
+            "clientSecret": "={{$env.WHATSPP_CLIENT_SECRET}}"
+        },
+        "type": "whatsAppTriggerApi",
+        "isManaged": false,
+        "isGlobal": false,
+        "isResolvable": false,
+        "resolvableAllowFallback": false,
+        "resolverId": null
+    },
+    {
+        "updatedAt": "2026-02-18T16:47:43.148Z",
+        "createdAt": "2026-02-18T14:05:42.492Z",
+        "id": "sOV5lLbhGWhmJ2NS",
+        "name": "WhatsApp account",
+        "data": {
+            "accessToken": "={{ $env.CAKE_ORDER_WHATSAPP_BOT_TOKEN }}",
+            "businessAccountId": "={{$env.WHATSAPP_BUSINESS_ACCOUNT_ID}}"
+        },
+        "type": "whatsAppApi",
+        "isManaged": false,
+        "isGlobal": false,
+        "isResolvable": false,
+        "resolvableAllowFallback": false,
+        "resolverId": null
+    },
+    {
         "updatedAt": "2026-02-15T14:47:51.010Z",
         "createdAt": "2026-02-14T22:47:52.371Z",
         "id": "emFEEI5og3xbekD3",
