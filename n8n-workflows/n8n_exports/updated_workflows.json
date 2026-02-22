@@ -1,0 +1,95 @@
+﻿{
+    "updatedAt":  "2026-02-22T12:22:27.489Z",
+    "createdAt":  "2026-02-22T11:59:55.695Z",
+    "id":  "NZLUl6h2nAfxPkvo",
+    "name":  "Cake Order Manager: Handle Deposit",
+    "description":  null,
+    "active":  true,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "httpMethod":  "POST",
+                                         "path":  "cakeOrder/handleDeposit",
+                                         "responseMode":  "responseNode",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2.1,
+                      "position":  [
+                                       0,
+                                       0
+                                   ],
+                      "id":  "e2a55d47-9bd6-40e8-b840-de6301911a59",
+                      "name":  "Webhook",
+                      "webhookId":  "24de01cf-56d0-4fbb-8ea7-260f31edc0c9"
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "allIncomingItems",
+                                         "options":  {
+                                                         "responseCode":  200
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       208,
+                                       0
+                                   ],
+                      "id":  "53255198-b3fd-4e04-9856-6a3b17609a56",
+                      "name":  "Respond to Webhook"
+                  }
+              ],
+    "connections":  {
+                        "Webhook":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Respond to Webhook",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "binaryMode":  "separate",
+                     "availableInMCP":  false
+                 },
+    "staticData":  null,
+    "meta":  null,
+    "pinData":  {
+
+                },
+    "versionId":  "cf1593a5-95be-4227-ac61-322cd021c659",
+    "activeVersionId":  "cf1593a5-95be-4227-ac61-322cd021c659",
+    "versionCounter":  12,
+    "triggerCount":  1,
+    "tags":  [
+
+             ],
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-02-22T11:59:55.695Z",
+                       "createdAt":  "2026-02-22T11:59:55.695Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "NZLUl6h2nAfxPkvo",
+                       "projectId":  "v9OoW2kz0JeZo6Se",
+                       "project":  {
+                                       "updatedAt":  "2026-02-15T14:42:07.121Z",
+                                       "createdAt":  "2026-02-15T14:26:49.591Z",
+                                       "id":  "v9OoW2kz0JeZo6Se",
+                                       "name":  "Damien Barnes \u003cdamie3@gmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "ef851d5d-5521-47ab-bdbc-2902c2f0f6b8"
+                                   }
+                   }
+               ]
+}
