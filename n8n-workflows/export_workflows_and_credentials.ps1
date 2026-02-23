@@ -92,11 +92,13 @@ if ($LastTimestamp -eq [datetime]::MinValue) {
 }
 
 # Use @() to force array output so ConvertTo-Json always emits [...] even for single items.
-# Use WriteAllText with explicit LF line endings instead of Set-Content (which uses CRLF on Windows).
+# Use UTF8NoBOM encoding and LF line endings for n8n compatibility.
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+
 if (@($updatedWorkflows).Count -gt 0) {
     $json = @($updatedWorkflows) | ConvertTo-Json -Depth 20
     $json = $json -replace "`r`n", "`n"
-    [System.IO.File]::WriteAllText($UpdatedWorkflowsFile, $json, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText($UpdatedWorkflowsFile, $json, $utf8NoBom)
     Write-Host "Updated workflows ($(@($updatedWorkflows).Count)): $UpdatedWorkflowsFile"
 } else {
     Write-Host "No workflows updated since last run - skipping file write."
@@ -105,7 +107,7 @@ if (@($updatedWorkflows).Count -gt 0) {
 if (@($updatedCredentials).Count -gt 0) {
     $json = @($updatedCredentials) | ConvertTo-Json -Depth 20
     $json = $json -replace "`r`n", "`n"
-    [System.IO.File]::WriteAllText($UpdatedCredentialsFile, $json, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText($UpdatedCredentialsFile, $json, $utf8NoBom)
     Write-Host "Updated credentials ($(@($updatedCredentials).Count)): $UpdatedCredentialsFile"
 } else {
     Write-Host "No credentials updated since last run - skipping file write."
