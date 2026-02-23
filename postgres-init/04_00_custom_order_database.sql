@@ -264,6 +264,10 @@ INSERT INTO order_config (
     '[{"label": "Vanilla", "value": "Vanilla"}, {"label": "Chocolate", "value": "Chocolate"}, {"label": "Red Velvet", "value": "Red Velvet"}, {"label": "Carrot", "value": "Carrot"}, {"label": "Lemon", "value": "Lemon"}, {"label": "Coconut", "value": "Coconut"}]',
     'Match the flavor against known options. If user mentions different flavors for different tiers, map them specifically (e.g., "bottom tier chocolate, top vanilla").',
     90, true),
+('filling', 'Filling Flavor', 'select', 'tier', 
+    '[{"label": "Vanilla", "value": "Vanilla"}, {"label": "Cream cheese", "value": "Cream cheese"}, {"label": "White chocolate", "value": "White chocolate"}, {"label": "Coconut", "value": "Coconut"}, {"label": "Double chocolate", "value": "Double chocolate"}, {"label": "Butter rum", "value": "Butter rum"}, {"label": "Coconut rum cream", "value": "Coconut rum cream"}, {"label": "Strawberry", "value": "Strawberry"}, {"label": "Peanut butter", "value": "Peanut butter"}, {"label": "Lemon", "value": "Lemon"}, {"label": "Dark chocolate ganache", "value": "Dark chocolate ganache"}]', 
+    'Map requested filling to available inventory. Note vegan options if specified.', 
+    90, true),
 
 ('layers', 'Internal Layers', 'integer', 'tier', 
     '[{"label": "2 Layers", "value": 2}, {"label": "3 Layers", "value": 3}, {"label": "4 Layers", "value": 4}]',

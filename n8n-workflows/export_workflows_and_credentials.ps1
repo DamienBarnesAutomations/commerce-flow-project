@@ -91,11 +91,25 @@ if ($LastTimestamp -eq [datetime]::MinValue) {
     }
 }
 
-$updatedWorkflows | ConvertTo-Json -Depth 20 | Set-Content -Path $UpdatedWorkflowsFile -Encoding UTF8
-$updatedCredentials | ConvertTo-Json -Depth 20 | Set-Content -Path $UpdatedCredentialsFile -Encoding UTF8
+# Use @() to force array output so ConvertTo-Json always emits [...] even for single items.
+# Use WriteAllText with explicit LF line endings instead of Set-Content (which uses CRLF on Windows).
+if (@($updatedWorkflows).Count -gt 0) {
+    $json = @($updatedWorkflows) | ConvertTo-Json -Depth 20
+    $json = $json -replace "`r`n", "`n"
+    [System.IO.File]::WriteAllText($UpdatedWorkflowsFile, $json, [System.Text.Encoding]::UTF8)
+    Write-Host "Updated workflows ($(@($updatedWorkflows).Count)): $UpdatedWorkflowsFile"
+} else {
+    Write-Host "No workflows updated since last run - skipping file write."
+}
 
-Write-Host "Updated workflows ($(@($updatedWorkflows).Count)): $UpdatedWorkflowsFile"
-Write-Host "Updated credentials ($(@($updatedCredentials).Count)): $UpdatedCredentialsFile"
+if (@($updatedCredentials).Count -gt 0) {
+    $json = @($updatedCredentials) | ConvertTo-Json -Depth 20
+    $json = $json -replace "`r`n", "`n"
+    [System.IO.File]::WriteAllText($UpdatedCredentialsFile, $json, [System.Text.Encoding]::UTF8)
+    Write-Host "Updated credentials ($(@($updatedCredentials).Count)): $UpdatedCredentialsFile"
+} else {
+    Write-Host "No credentials updated since last run - skipping file write."
+}
 
 # Save current timestamp for next run
 $now = (Get-Date).ToUniversalTime().ToString("o")
