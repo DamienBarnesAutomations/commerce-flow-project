@@ -6,21 +6,12 @@ $OutputDir = Join-Path $PSScriptRoot "n8n_exports"
 $ContainerName = "n8n_app"
 $ContainerPath = "/home/node/.n8n-files/workflows"
 
-$AllWorkflowsFile = Join-Path $OutputDir "all_workflows.json"
-$AllCredentialsFile = Join-Path $OutputDir "all_credentials.json"
-$UpdatedWorkflowsFile = Join-Path $OutputDir "updated_workflows.json"
-$UpdatedCredentialsFile = Join-Path $OutputDir "updated_credentials.json"
-
-$ContainerWorkflowsPath = "$ContainerPath/all_workflows.json"
-$ContainerCredsPath = "$ContainerPath/creds-template.json"
-
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 
 # Read last timestamp from file
-$LastTimestamp = [datetime]::MinValue
+$LastTimestamp = ""
 if (Test-Path $TimestampFile) {
-    $raw = (Get-Content $TimestampFile -Raw).Trim()
-    $LastTimestamp = [datetime]::Parse($raw)
+    $LastTimestamp = (Get-Content $TimestampFile -Raw).Trim()
     Write-Host "Last export timestamp: $LastTimestamp"
 } else {
     Write-Host "No previous timestamp found - treating all items as updated."
@@ -28,90 +19,62 @@ if (Test-Path $TimestampFile) {
 
 $ExportStart = Get-Date
 
-# Export all workflows
+# Export all workflows into container
 Write-Host "Exporting all workflows..."
-docker exec $ContainerName n8n export:workflow --all --output=$ContainerWorkflowsPath
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Workflow export failed."
-    exit 1
-}
+docker exec $ContainerName n8n export:workflow --all --output=$ContainerPath/all_workflows.json
+if ($LASTEXITCODE -ne 0) { Write-Error "Workflow export failed."; exit 1 }
 
-docker cp "${ContainerName}:${ContainerWorkflowsPath}" $AllWorkflowsFile
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Failed to copy workflows from container."
-    exit 1
-}
-Write-Host "All workflows saved to: $AllWorkflowsFile"
-
-# Export all credentials
+# Export all credentials into container
 Write-Host "Exporting all credentials..."
-docker exec $ContainerName n8n export:credentials --all --decrypted --output=$ContainerCredsPath
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Credentials export failed."
-    exit 1
+docker exec $ContainerName n8n export:credentials --all --decrypted --output=$ContainerPath/all_credentials.json
+if ($LASTEXITCODE -ne 0) { Write-Error "Credentials export failed."; exit 1 }
+
+# Run a Node.js script inside the container to filter and write the updated files
+$nodeScript = @'
+const fs = require('fs');
+const path = require('path');
+
+const dir = '/home/node/.n8n-files/workflows';
+const lastTimestamp = process.argv[2] ? new Date(process.argv[2]) : null;
+
+function filterUpdated(items) {
+    if (!lastTimestamp) return items;
+    return items.filter(item => {
+        if (!item.updatedAt) return false;
+        return new Date(item.updatedAt) > lastTimestamp;
+    });
 }
 
-docker cp "${ContainerName}:${ContainerCredsPath}" $AllCredentialsFile
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Failed to copy credentials from container."
-    exit 1
-}
-Write-Host "All credentials saved to: $AllCredentialsFile"
-
-# Parse exported JSON
-$allWorkflows = Get-Content $AllWorkflowsFile -Raw | ConvertFrom-Json
-$allCredentials = Get-Content $AllCredentialsFile -Raw | ConvertFrom-Json
-
-# n8n may wrap items in a "data" property
-if ($allWorkflows.PSObject.Properties.Name -contains "data") {
-    $allWorkflows = $allWorkflows.data
-}
-if ($allCredentials.PSObject.Properties.Name -contains "data") {
-    $allCredentials = $allCredentials.data
+function loadJson(file) {
+    const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return Array.isArray(raw) ? raw : (raw.data ?? []);
 }
 
-# Filter to items updated since last timestamp
-Write-Host "Filtering items updated since: $LastTimestamp"
+const allWorkflows = loadJson(path.join(dir, 'all_workflows.json'));
+const allCredentials = loadJson(path.join(dir, 'all_credentials.json'));
 
-if ($LastTimestamp -eq [datetime]::MinValue) {
-    $updatedWorkflows = $allWorkflows
-    $updatedCredentials = $allCredentials
-} else {
-    $updatedWorkflows = $allWorkflows | Where-Object {
-        $d = $_.updatedAt
-        if (-not $d) { return $false }
-        try { [datetime]::Parse($d).ToUniversalTime() -gt $LastTimestamp.ToUniversalTime() }
-        catch { $false }
-    }
-    $updatedCredentials = $allCredentials | Where-Object {
-        $d = $_.updatedAt
-        if (-not $d) { return $false }
-        try { [datetime]::Parse($d).ToUniversalTime() -gt $LastTimestamp.ToUniversalTime() }
-        catch { $false }
-    }
-}
+const updatedWorkflows = filterUpdated(allWorkflows);
+const updatedCredentials = filterUpdated(allCredentials);
 
-# Use @() to force array output so ConvertTo-Json always emits [...] even for single items.
-# Use UTF8NoBOM encoding and LF line endings for n8n compatibility.
-$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+fs.writeFileSync(path.join(dir, 'updated_workflows.json'), JSON.stringify(updatedWorkflows, null, 2), 'utf8');
+fs.writeFileSync(path.join(dir, 'updated_credentials.json'), JSON.stringify(updatedCredentials, null, 2), 'utf8');
 
-if (@($updatedWorkflows).Count -gt 0) {
-    $json = @($updatedWorkflows) | ConvertTo-Json -Depth 20
-    $json = $json -replace "`r`n", "`n"
-    [System.IO.File]::WriteAllText($UpdatedWorkflowsFile, $json, $utf8NoBom)
-    Write-Host "Updated workflows ($(@($updatedWorkflows).Count)): $UpdatedWorkflowsFile"
-} else {
-    Write-Host "No workflows updated since last run - skipping file write."
-}
+console.log(`Updated workflows: ${updatedWorkflows.length}`);
+console.log(`Updated credentials: ${updatedCredentials.length}`);
+'@
 
-if (@($updatedCredentials).Count -gt 0) {
-    $json = @($updatedCredentials) | ConvertTo-Json -Depth 20
-    $json = $json -replace "`r`n", "`n"
-    [System.IO.File]::WriteAllText($UpdatedCredentialsFile, $json, $utf8NoBom)
-    Write-Host "Updated credentials ($(@($updatedCredentials).Count)): $UpdatedCredentialsFile"
-} else {
-    Write-Host "No credentials updated since last run - skipping file write."
-}
+Write-Host "Filtering updated items inside container..."
+docker exec $ContainerName node -e $nodeScript -- $LastTimestamp
+if ($LASTEXITCODE -ne 0) { Write-Error "Filtering script failed."; exit 1 }
+
+# Copy all four files out of the container
+Write-Host "Copying files from container..."
+docker cp "${ContainerName}:${ContainerPath}/all_workflows.json"       (Join-Path $OutputDir "all_workflows.json")
+docker cp "${ContainerName}:${ContainerPath}/all_credentials.json"     (Join-Path $OutputDir "all_credentials.json")
+docker cp "${ContainerName}:${ContainerPath}/updated_workflows.json"   (Join-Path $OutputDir "updated_workflows.json")
+docker cp "${ContainerName}:${ContainerPath}/updated_credentials.json" (Join-Path $OutputDir "updated_credentials.json")
+
+Write-Host "Exports saved to: $OutputDir"
 
 # Save current timestamp for next run
 $now = (Get-Date).ToUniversalTime().ToString("o")
