@@ -218,15 +218,23 @@ INSERT INTO order_config (
 ('client_name', 'Client Name', 'string', 'global', '[]',
     'Extract the customer''s full name. If they mention a business, prioritize the individual contact name.',
     10, true),
-
+('celebrant_name', 'Celebrant Name', 'string', 'global', '[]',
+    'Extract the celebrant''s full name. This is the person the cake is for, which may be different from the client ordering (e.g., "I want to order a cake for my friend Sarah"). If no celebrant is mentioned, this can be left blank.',
+    20, true),
+('celebrant_age', 'Celebrant Age', 'string', 'global', '[]',
+    'Extract the celebrant''s age. If not mentioned, Fill with None.',
+    20, true),
 ('event_date', 'Event Date', 'date', 'global', '[]',
     'Convert natural language (e.g., "next Friday", "Halloween") to YYYY-MM-DD. Assume the current or upcoming year. Minimum 7 days notice required.',
-    20, true),
+    30, true),
+('event_type', 'Event Type', 'string', 'global', '[]',
+    'Extract the type of event (e.g., "Birthday", "Wedding", "Graduation").',
+    40, true),
 
 ('delivery', 'Delivery Service', 'boolean', 'global', 
     '[{"label": "Delivery", "value": true}, {"label": "Pickup", "value": false}]',
     'True for phrases like "bring it to me," "drop off," or "deliver." False for "pick up," "self-collect," or "I''ll come by."',
-    30, true),
+    40, true),
 
 ('delivery_address', 'Delivery Address', 'string', 'global', '[]',
     'Extract the full street address including unit numbers or zip codes. Ignore if delivery is false.',
@@ -267,7 +275,7 @@ INSERT INTO order_config (
 
 -- Image: Capturing visual references
 ('image_reference', 'Inspiration Image', 'string', 'global', '[]',
-    'Extract the URL or file identifier of any images shared by the user. If the user says "like this photo" or "attached is a sketch," link that reference here.',
+    'The actual image upload and storage will be handled separately. Use "None" if no image is provided.',
     120, true);
 
 
@@ -282,3 +290,40 @@ INSERT INTO field_rules (field_key, rule_type, config, error_message) VALUES
 ('size', 'min_base_for_tiers', '{"tiers": 2, "min_inches": 8}', 'For a 2-tier cake, the bottom tier must be at least 8 inches.'),
 ('size', 'min_base_for_tiers', '{"tiers": 3, "min_inches": 10}', 'A 3-tier cake needs a sturdy 10-inch base to stay upright!'),
 ('special_note', 'max_length', '{"max_chars": 500}', 'Your special note is too long!');
+
+
+UPDATE order_config
+SET options = '[
+    {"label": "Vanilla Bean", "value": "vanilla bean"},
+    {"label": "Carrot", "value": "carrot"},
+    {"label": "Lemon", "value": "lemon"},
+    {"label": "Coconut", "value": "coconut"},
+    {"label": "Marble", "value": "marble"},
+    {"label": "Chocolate", "value": "chocolate"},
+    {"label": "Strawberry", "value": "strawberry"},
+    {"label": "Cookies and Cream", "value": "cookies and cream"},
+    {"label": "Red Velvet", "value": "red velvet"},
+    {"label": "Banana Bread", "value": "banana bread"},
+    {"label": "Caribbean Fruit/ Rum", "value": "caribbean fruit/ rum"},
+    {"label": "Butter Pecan", "value": "butter pecan"},
+    {"label": "White Chocolate Sponge", "value": "white chocolate sponge"},
+    {"label": "Pineapple Sponge", "value": "pineapple sponge"}
+]'::jsonb
+WHERE field_key = 'flavor';
+
+----- Post-migration data update for flavor options
+ALTER TABLE chat_sessions
+ADD COLUMN welcome_message_sent BOOLEAN NOT NULL DEFAULT FALSE;
+
+
+
+
+--- Frosting
+INSERT INTO order_config (
+    field_key, display_name, field_type, scope, options, 
+    extraction_hint, sort_order, is_active
+) VALUES
+('frosting_flavor', 'Frosting Flavor', 'select', 'global', 
+ '[{"label": "Vanilla", "value": "Vanilla"}, {"label": "Chocolate", "value": "Chocolate"}, {"label": "Lemon", "value": "Lemon"}, {"label": "Cream Cheese", "value": "Cream Cheese"}, {"label": "Nutella", "value": "Nutella"}, {"label": "Coffee", "value": "Coffee"}, {"label": "Guava", "value": "Guava"}, {"label": "Strawberry", "value": "Strawberry"}, {"label": "Cookies n Cream", "value": "Cookies n Cream"}, {"label": "Spiced", "value": "Spiced"}]',
+ 'Match the frosting flavor against known options. If user mentions different frostings for different tiers, map them specifically (e.g., "bottom tier chocolate, top vanilla").',
+ 100, true);
