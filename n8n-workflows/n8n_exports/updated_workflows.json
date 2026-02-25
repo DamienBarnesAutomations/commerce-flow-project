@@ -1261,7 +1261,7 @@
     ]
   },
   {
-    "updatedAt": "2026-02-21T11:13:28.197Z",
+    "updatedAt": "2026-02-25T04:04:24.727Z",
     "createdAt": "2026-02-10T00:51:43.074Z",
     "id": "zvj4fWnvOJkIFxiwQt9hX",
     "name": "Cake Order Manager: Create or Change Order",
@@ -1313,6 +1313,12 @@
                 "name": "last_ai_prompt",
                 "value": "={{ $json.body.last_ai_prompt }}",
                 "type": "string"
+              },
+              {
+                "id": "fb890e43-73e0-421a-b626-44a1cefdd38a",
+                "name": "general_information",
+                "value": "={{ $json.body.general_information }}",
+                "type": "object"
               }
             ]
           },
@@ -1818,6 +1824,10 @@
               {
                 "name": "customer_id",
                 "value": "={{ $('Edit Fields').item.json.customer_id }}"
+              },
+              {
+                "name": "general_information",
+                "value": "={{ $('Edit Fields').item.json.general_information }}"
               }
             ]
           },
@@ -2093,7 +2103,7 @@
               "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
               "content-type": "application/json",
               "user-agent": "axios/1.12.0",
-              "content-length": "5358",
+              "content-length": "9553",
               "accept-encoding": "gzip, compress, deflate, br",
               "host": "localhost:5678",
               "connection": "close"
@@ -2101,7 +2111,7 @@
             "params": {},
             "query": {},
             "body": {
-              "message": "I am damien. I want a 2 tier vanailla cake for the 28th Feb. each tier should be 2 layers.",
+              "message": "I'd like to order a 3 tiered cake for my Birthday on the 17th April.",
               "order_config": {
                 "size": {
                   "display_name": "Tier Size",
@@ -2174,20 +2184,36 @@
                   "extraction_hint": "Match the flavor against known options. If user mentions different flavors for different tiers, map them specifically (e.g., \"bottom tier chocolate, top vanilla\").",
                   "rules": [],
                   "options": [
-                    "Lemon",
-                    "Carrot",
-                    "Coconut",
-                    "Vanilla",
-                    "Chocolate",
-                    "Red Velvet"
+                    "lemon",
+                    "carrot",
+                    "marble",
+                    "coconut",
+                    "chocolate",
+                    "red velvet",
+                    "strawberry",
+                    "banana bread",
+                    "butter pecan",
+                    "vanilla bean",
+                    "pineapple sponge",
+                    "cookies and cream",
+                    "caribbean fruit/ rum",
+                    "white chocolate sponge"
                   ],
                   "option_labels": {
-                    "Lemon": "Lemon",
-                    "Carrot": "Carrot",
-                    "Coconut": "Coconut",
-                    "Vanilla": "Vanilla",
-                    "Chocolate": "Chocolate",
-                    "Red Velvet": "Red Velvet"
+                    "lemon": "Lemon",
+                    "carrot": "Carrot",
+                    "marble": "Marble",
+                    "coconut": "Coconut",
+                    "chocolate": "Chocolate",
+                    "red velvet": "Red Velvet",
+                    "strawberry": "Strawberry",
+                    "banana bread": "Banana Bread",
+                    "butter pecan": "Butter Pecan",
+                    "vanilla bean": "Vanilla Bean",
+                    "pineapple sponge": "Pineapple Sponge",
+                    "cookies and cream": "Cookies and Cream",
+                    "caribbean fruit/ rum": "Caribbean Fruit/ Rum",
+                    "white chocolate sponge": "White Chocolate Sponge"
                   },
                   "option_prices": {}
                 },
@@ -2227,11 +2253,46 @@
                   },
                   "option_prices": {}
                 },
+                "filling": {
+                  "display_name": "Filling Flavor",
+                  "field_type": "select",
+                  "scope": "tier",
+                  "sort_order": 90,
+                  "extraction_hint": "Map requested filling to available inventory. Note vegan options if specified.",
+                  "rules": [],
+                  "options": [
+                    "Lemon",
+                    "Coconut",
+                    "Vanilla",
+                    "Butter rum",
+                    "Strawberry",
+                    "Cream cheese",
+                    "Peanut butter",
+                    "White chocolate",
+                    "Double chocolate",
+                    "Coconut rum cream",
+                    "Dark chocolate ganache"
+                  ],
+                  "option_labels": {
+                    "Lemon": "Lemon",
+                    "Coconut": "Coconut",
+                    "Vanilla": "Vanilla",
+                    "Butter rum": "Butter rum",
+                    "Strawberry": "Strawberry",
+                    "Cream cheese": "Cream cheese",
+                    "Peanut butter": "Peanut butter",
+                    "White chocolate": "White chocolate",
+                    "Double chocolate": "Double chocolate",
+                    "Coconut rum cream": "Coconut rum cream",
+                    "Dark chocolate ganache": "Dark chocolate ganache"
+                  },
+                  "option_prices": {}
+                },
                 "delivery": {
                   "display_name": "Delivery Service",
                   "field_type": "boolean",
                   "scope": "global",
-                  "sort_order": 30,
+                  "sort_order": 40,
                   "extraction_hint": "True for phrases like \"bring it to me,\" \"drop off,\" or \"deliver.\" False for \"pick up,\" \"self-collect,\" or \"I'll come by.\"",
                   "rules": [],
                   "options": [
@@ -2259,7 +2320,7 @@
                   "display_name": "Event Date",
                   "field_type": "date",
                   "scope": "global",
-                  "sort_order": 20,
+                  "sort_order": 30,
                   "extraction_hint": "Convert natural language (e.g., \"next Friday\", \"Halloween\") to YYYY-MM-DD. Assume the current or upcoming year. Minimum 7 days notice required.",
                   "rules": [
                     {
@@ -2270,6 +2331,17 @@
                       "error_message": "I need at least 7 days notice to bake something amazing!"
                     }
                   ],
+                  "options": [],
+                  "option_labels": {},
+                  "option_prices": {}
+                },
+                "event_type": {
+                  "display_name": "Event Type",
+                  "field_type": "string",
+                  "scope": "global",
+                  "sort_order": 40,
+                  "extraction_hint": "Extract the type of event (e.g., \"Birthday\", \"Wedding\", \"Graduation\").",
+                  "rules": [],
                   "options": [],
                   "option_labels": {},
                   "option_prices": {}
@@ -2304,12 +2376,43 @@
                   "option_labels": {},
                   "option_prices": {}
                 },
+                "celebrant_age": {
+                  "display_name": "Celebrant Age",
+                  "field_type": "string",
+                  "scope": "global",
+                  "sort_order": 20,
+                  "extraction_hint": "Extract the celebrant's age. If not mentioned, Fill with None.",
+                  "rules": [
+                    {
+                      "type": "dependency",
+                      "config": {
+                        "value": "Birthday",
+                        "depends_on": "event_type"
+                      },
+                      "error_message": "What is the age of the celebrant?"
+                    }
+                  ],
+                  "options": [],
+                  "option_labels": {},
+                  "option_prices": {}
+                },
+                "celebrant_name": {
+                  "display_name": "Celebrant Name",
+                  "field_type": "string",
+                  "scope": "global",
+                  "sort_order": 20,
+                  "extraction_hint": "Extract the celebrant's full name. This is the person the cake is for, which may be different from the client ordering (e.g., \"I want to order a cake for my friend Sarah\"). If no celebrant is mentioned, this can be left blank.",
+                  "rules": [],
+                  "options": [],
+                  "option_labels": {},
+                  "option_prices": {}
+                },
                 "image_reference": {
                   "display_name": "Inspiration Image",
                   "field_type": "string",
                   "scope": "global",
                   "sort_order": 120,
-                  "extraction_hint": "Extract the URL or file identifier of any images shared by the user. If the user says \"like this photo\" or \"attached is a sketch,\" link that reference here.",
+                  "extraction_hint": "The actual image upload and storage will be handled separately. Use \"None\" if no image is provided.",
                   "rules": [],
                   "options": [],
                   "option_labels": {},
@@ -2337,7 +2440,54 @@
                 }
               },
               "customer_id": "8265615223",
-              "last_ai_prompt": "Welcome! I can help you with that. To start your order, could you please tell me your name?"
+              "last_ai_prompt": "Thank you, Andreas. We have noted that the cake is for Sandra.\n\nTo continue with your order, could you please tell me how many tiers you would like for the cake? We offer 1, 2, or 3 tiers.\n\nAlso, what is the date of the event? Please keep in mind we need at least 7 days notice.\n\nFinally, will you be picking up the cake, or would you prefer delivery service?",
+              "general_information": {
+                "website": {
+                  "value": "https://www.preciousplaceanu.com",
+                  "display_name": "Website URL",
+                  "field_description": "Our official website where customers can learn more about our offerings and place orders online."
+                },
+                "facebook": {
+                  "value": "https://www.facebook.com/preciousplaceanu",
+                  "display_name": "Facebook Page",
+                  "field_description": "Our Facebook page for updates and customer engagement."
+                },
+                "location": {
+                  "value": "St. Mary's Street , Saint John, Antigua",
+                  "display_name": "Location",
+                  "field_description": "The physical address of our bakery for pickups and visits."
+                },
+                "Instagram": {
+                  "value": "https://www.instagram.com/preciousplaceanu",
+                  "display_name": "Instagram Page",
+                  "field_description": "Our Instagram handle for customers to follow."
+                },
+                "contact_email": {
+                  "value": "preciousplaceanu@gmail.com",
+                  "display_name": "Contact Email",
+                  "field_description": "The best email to reach us for inquiries, custom orders, or support."
+                },
+                "contact_phone": {
+                  "value": "+1 268-723-1099",
+                  "display_name": "Contact Phone",
+                  "field_description": "Our customer service phone number for direct communication."
+                },
+                "delivery_cost": {
+                  "value": "$5 within 5 miles, $10 within 10 miles, Free beyond 10 miles",
+                  "display_name": "Delivery Cost",
+                  "field_description": "Our delivery pricing structure based on distance from the bakery."
+                },
+                "business_hours": {
+                  "value": "Mon-Thur 8:30am-6pm, Fri: 8:00am-6pm, Sat 11am-6pm, Sun Closed",
+                  "display_name": "Business Hours",
+                  "field_description": "Our bakery is open during these hours. Orders placed outside of these times will be processed the next business day."
+                },
+                "pickup_address": {
+                  "value": "St. Mary's Street , Saint John, Antigua",
+                  "display_name": "Pickup Address",
+                  "field_description": "The address where customers can pick up their orders if they choose not to have them delivered."
+                }
+              }
             },
             "webhookUrl": "http://localhost:5678/webhook/cakeOrder/createOrChange",
             "executionMode": "production"
@@ -2345,9 +2495,9 @@
         }
       ]
     },
-    "versionId": "8685f527-cd76-49c7-a9a1-7537046de67e",
-    "activeVersionId": "8685f527-cd76-49c7-a9a1-7537046de67e",
-    "versionCounter": 368,
+    "versionId": "51233d9d-7c70-4978-acd7-85f9724eeb53",
+    "activeVersionId": "51233d9d-7c70-4978-acd7-85f9724eeb53",
+    "versionCounter": 376,
     "triggerCount": 1,
     "tags": [],
     "shared": [
@@ -11279,7 +11429,7 @@
     ]
   },
   {
-    "updatedAt": "2026-02-22T16:00:06.716Z",
+    "updatedAt": "2026-02-25T03:59:15.067Z",
     "createdAt": "2026-02-16T13:47:09.207Z",
     "id": "6oDAHxnsXFgheoq5",
     "name": "Cake Order Manager: Help",
@@ -11367,6 +11517,12 @@
                 "name": "last_ai_prompt",
                 "value": "={{ $json.body.last_ai_prompt }}",
                 "type": "string"
+              },
+              {
+                "id": "e0684f8e-ccb4-4c21-bb35-e32a802f78d2",
+                "name": "general_information",
+                "value": "={{ $json.body.general_information }}",
+                "type": "object"
               }
             ]
           },
@@ -11387,7 +11543,7 @@
           "text": "=**User_Input**: \"\"\"{{ $('Edit Fields1').item.json.user_message }}\"\"\"\n\n",
           "hasOutputParser": true,
           "options": {
-            "systemMessage": "=ROLE\nYou are the \"Cake Concierge,\" a high-precision interface for a Custom Cake ERP. Your role is to analyze the Order Configuration Fields to answer user inquiries accurately and warmly. You act as a knowledgeable baker who knows exactly what options, rules, and constraints are available in the system.\n\nCONTEXT\nCurrent Date: {{ $now.toFormat('EEEE, MMMM d, yyyy') }}\n\nLast AI Message (Context): \"\"\"{{ $('Edit Fields1').item.json.last_ai_prompt }}\"\"\"\n\nOrder Configuration Fields: {{ Object.keys($json.order_config).map(i => '- ' + i + ':\\n' + Object.entries($json.order_config[i]).map(([key, value]) => '  - ' + key + ': ' + (typeof value === 'object' ? JSON.stringify(value) : value)).join('\\n')).join('\\n\\n') }}\n\nINSTRUCTIONS\nAnalyze the Query: Determine if the user is asking about available options (e.g., flavors, sizes), system rules (e.g., lead time, tier stability), or general process.\n\nConsult the Config: Use the options and rules arrays within the Order Configuration Fields to provide factual answers.\n\nIf they ask for flavors, list the options under the flavor key.\n\nIf they ask about timing, reference the lead_time rule under event_date.\n\nIf they ask about multi-tier cakes, reference the min_base_for_tiers rules under size.\n\nIf they ask for instructions give them a list of fields from the config that they are required to enter, with a slight explanation for each field. Also mention that they will be asked to confirm the order is fine once all fields are filled and this is important for sending the order off to the team.\nAs this message will be quite a wall of text, please do your best to add emojis to reduce make it an easier read.\n\nTone & Style: Maintain a warm, professional, and helpful \"bakery\" persona. Use natural language, not technical jargon.\n\nData Integrity: Even when answering a question, ensure the JSON structure remains consistent with the ERP's expectations.\n\n\nCONSTRAINTS\n- **Tone**: Helpful, friendly, and professional. \n- **No Fluff**: Do not use \"I'm sorry,\" \"unfortunately,\" or \"however.\"\n- **Not too perky**: Go easy on the \"Absolutely!\", \"Wonderful!\", \"Certainly!\" etc.\n- **No Tech Talk**: Never mention \"JSON,\" \"fields,\" \"validation,\" or \"null.\"\n- **Accuracy**: Only suggest options found in the `options` list for that specific field.\n- **Sanity Check**: Before asking a question, verify that the field is actually empty in the **Current State of Order**.\n- **Format**: Output ONLY raw JSON. No markdown, no \"```json\", no prose outside the JSON.\n\nResponse Field: Your natural language answer must be placed inside the response_message key.\n\nNo Hallucinations: Do not offer flavors, sizes, or services (like \"Gluten Free\") if they are not explicitly listed in the provided configuration.\n\nAccuracy: If a user asks for a 3-tier cake with a 6-inch base, gently explain the rule from the config: \"A 3-tier cake needs a sturdy 10-inch base to stay upright!\"\n\n"
+            "systemMessage": "=ROLE\nYou are the \"Cake Concierge,\" a high-precision interface for a Custom Cake ERP. Your role is to analyze the Order Configuration Fields to answer user inquiries accurately and warmly. You act as a knowledgeable baker who knows exactly what options, rules, and constraints are available in the system.\n\nCONTEXT\nCurrent Date: {{ $now.toFormat('EEEE, MMMM d, yyyy') }}\n\nLast AI Message (Context): \"\"\"{{ $('Edit Fields1').item.json.last_ai_prompt }}\"\"\"\n\nOrder Configuration Fields: {{ Object.keys($json.order_config).map(i => '- ' + i + ':\\n' + Object.entries($json.order_config[i]).map(([key, value]) => '  - ' + key + ': ' + (typeof value === 'object' ? JSON.stringify(value) : value)).join('\\n')).join('\\n\\n') }}\n\nGeneral Information\n{{ Object.keys($('Edit Fields1').first().json.general_information).map(i => '- ' + i + ':\\n' + Object.entries($('Edit Fields1').first().json.general_information[i]).map(([key, value]) => '  - ' + key + ': ' + (typeof value === 'object' ? JSON.stringify(value) : value)).join('\\n')).join('\\n\\n') }}\n\n\nINSTRUCTIONS\nAnalyze the Query: Determine if the user is asking about available options (e.g., flavors, sizes), system rules (e.g., lead time, tier stability), or general process.\n\nConsult the Config: Use the options and rules arrays within the Order Configuration Fields to provide factual answers.\n\nIf they ask for flavors, list the options under the flavor key.\n\nIf they ask about timing, reference the lead_time rule under event_date.\n\nIf they ask about multi-tier cakes, reference the min_base_for_tiers rules under size.\n\nIf they ask for instructions give them a list of fields from the config that they are required to enter, with a slight explanation for each field. Also mention that they will be asked to confirm the order is fine once all fields are filled and this is important for sending the order off to the team.\nAs this message will be quite a wall of text, please do your best to add emojis to reduce make it an easier read.\n\nTone & Style: Maintain a warm, professional, and helpful \"bakery\" persona. Use natural language, not technical jargon.\n\nData Integrity: Even when answering a question, ensure the JSON structure remains consistent with the ERP's expectations.\n\n\nCONSTRAINTS\n- **Tone**: Helpful, friendly, and professional. \n- **No Fluff**: Do not use \"I'm sorry,\" \"unfortunately,\" or \"however.\"\n- **Not too perky**: Go easy on the \"Absolutely!\", \"Wonderful!\", \"Certainly!\" etc.\n- **No Tech Talk**: Never mention \"JSON,\" \"fields,\" \"validation,\" or \"null.\"\n- **Accuracy**: Only suggest options found in the `options` list for that specific field.\n- **Sanity Check**: Before asking a question, verify that the field is actually empty in the **Current State of Order**.\n- **Format**: Output ONLY raw JSON. No markdown, no \"```json\", no prose outside the JSON.\n\nResponse Field: Your natural language answer must be placed inside the response_message key.\n\nNo Hallucinations: Do not offer flavors, sizes, or services (like \"Gluten Free\") if they are not explicitly listed in the provided configuration.\n\nAccuracy: If a user asks for a 3-tier cake with a 6-inch base, gently explain the rule from the config: \"A 3-tier cake needs a sturdy 10-inch base to stay upright!\"\n\n"
           }
         },
         "type": "@n8n/n8n-nodes-langchain.agent",
@@ -11406,7 +11562,7 @@
         "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
         "typeVersion": 1,
         "position": [
-          312,
+          320,
           224
         ],
         "id": "c69ef9f7-8352-47bb-be06-ad999e8b1138",
@@ -11504,7 +11660,7 @@
               "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
               "content-type": "application/json",
               "user-agent": "axios/1.12.0",
-              "content-length": "6996",
+              "content-length": "9489",
               "accept-encoding": "gzip, compress, deflate, br",
               "host": "localhost:5678",
               "connection": "close"
@@ -11512,7 +11668,7 @@
             "params": {},
             "query": {},
             "body": {
-              "message": "Can you please give me instructions?",
+              "message": "What are your opening times?",
               "order_config": {
                 "size": {
                   "display_name": "Tier Size",
@@ -11654,6 +11810,41 @@
                   },
                   "option_prices": {}
                 },
+                "filling": {
+                  "display_name": "Filling Flavor",
+                  "field_type": "select",
+                  "scope": "tier",
+                  "sort_order": 90,
+                  "extraction_hint": "Map requested filling to available inventory. Note vegan options if specified.",
+                  "rules": [],
+                  "options": [
+                    "Lemon",
+                    "Coconut",
+                    "Vanilla",
+                    "Butter rum",
+                    "Strawberry",
+                    "Cream cheese",
+                    "Peanut butter",
+                    "White chocolate",
+                    "Double chocolate",
+                    "Coconut rum cream",
+                    "Dark chocolate ganache"
+                  ],
+                  "option_labels": {
+                    "Lemon": "Lemon",
+                    "Coconut": "Coconut",
+                    "Vanilla": "Vanilla",
+                    "Butter rum": "Butter rum",
+                    "Strawberry": "Strawberry",
+                    "Cream cheese": "Cream cheese",
+                    "Peanut butter": "Peanut butter",
+                    "White chocolate": "White chocolate",
+                    "Double chocolate": "Double chocolate",
+                    "Coconut rum cream": "Coconut rum cream",
+                    "Dark chocolate ganache": "Dark chocolate ganache"
+                  },
+                  "option_prices": {}
+                },
                 "delivery": {
                   "display_name": "Delivery Service",
                   "field_type": "boolean",
@@ -11748,7 +11939,16 @@
                   "scope": "global",
                   "sort_order": 20,
                   "extraction_hint": "Extract the celebrant's age. If not mentioned, Fill with None.",
-                  "rules": [],
+                  "rules": [
+                    {
+                      "type": "dependency",
+                      "config": {
+                        "value": "Birthday",
+                        "depends_on": "event_type"
+                      },
+                      "error_message": "What is the age of the celebrant?"
+                    }
+                  ],
                   "options": [],
                   "option_labels": {},
                   "option_prices": {}
@@ -11769,7 +11969,7 @@
                   "field_type": "string",
                   "scope": "global",
                   "sort_order": 120,
-                  "extraction_hint": "Extract the URL or file identifier of any images shared by the user. If the user says \"like this photo\" or \"attached is a sketch,\" link that reference here.",
+                  "extraction_hint": "The actual image upload and storage will be handled separately. Use \"None\" if no image is provided.",
                   "rules": [],
                   "options": [],
                   "option_labels": {},
@@ -11797,7 +11997,54 @@
                 }
               },
               "customer_id": "8265615223",
-              "last_ai_prompt": "Welcome, Damien! We have your 2-tier vanilla cake for February 28, 2026, with each tier having 2 layers.\n\nTo continue designing your cake, what sizes would you like for your first and second tiers? We offer 6\", 8\", 9\", 10\", 12\", Half Sheet, or Quarter Sheet options.\n\nAlso, what kind of theme or design are you imagining for your cake? And will you be picking up the cake, or would you like to use our delivery service?"
+              "last_ai_prompt": "Thank you, Andreas. We have noted that the cake is for Sandra.\n\nTo continue with your order, could you please tell me how many tiers you would like for the cake? We offer 1, 2, or 3 tiers.\n\nAlso, what is the date of the event? Please keep in mind we need at least 7 days notice.\n\nFinally, will you be picking up the cake, or would you prefer delivery service?",
+              "general_information": {
+                "website": {
+                  "value": "https://www.preciousplaceanu.com",
+                  "display_name": "Website URL",
+                  "field_description": "Our official website where customers can learn more about our offerings and place orders online."
+                },
+                "facebook": {
+                  "value": "https://www.facebook.com/preciousplaceanu",
+                  "display_name": "Facebook Page",
+                  "field_description": "Our Facebook page for updates and customer engagement."
+                },
+                "location": {
+                  "value": "St. Mary's Street , Saint John, Antigua",
+                  "display_name": "Location",
+                  "field_description": "The physical address of our bakery for pickups and visits."
+                },
+                "Instagram": {
+                  "value": "https://www.instagram.com/preciousplaceanu",
+                  "display_name": "Instagram Page",
+                  "field_description": "Our Instagram handle for customers to follow."
+                },
+                "contact_email": {
+                  "value": "preciousplaceanu@gmail.com",
+                  "display_name": "Contact Email",
+                  "field_description": "The best email to reach us for inquiries, custom orders, or support."
+                },
+                "contact_phone": {
+                  "value": "+1 268-723-1099",
+                  "display_name": "Contact Phone",
+                  "field_description": "Our customer service phone number for direct communication."
+                },
+                "delivery_cost": {
+                  "value": "$5 within 5 miles, $10 within 10 miles, Free beyond 10 miles",
+                  "display_name": "Delivery Cost",
+                  "field_description": "Our delivery pricing structure based on distance from the bakery."
+                },
+                "business_hours": {
+                  "value": "Mon-Thur 8:30am-6pm, Fri: 8:00am-6pm, Sat 11am-6pm, Sun Closed",
+                  "display_name": "Business Hours",
+                  "field_description": "Our bakery is open during these hours. Orders placed outside of these times will be processed the next business day."
+                },
+                "pickup_address": {
+                  "value": "St. Mary's Street , Saint John, Antigua",
+                  "display_name": "Pickup Address",
+                  "field_description": "The address where customers can pick up their orders if they choose not to have them delivered."
+                }
+              }
             },
             "webhookUrl": "http://localhost:5678/webhook/cakeOrder/help",
             "executionMode": "production"
@@ -11805,9 +12052,9 @@
         }
       ]
     },
-    "versionId": "5cb45071-7a75-43e1-a18e-36dd61eceaab",
-    "activeVersionId": "5cb45071-7a75-43e1-a18e-36dd61eceaab",
-    "versionCounter": 121,
+    "versionId": "897f58be-c730-42c3-bb67-388f2cb6f6ba",
+    "activeVersionId": "897f58be-c730-42c3-bb67-388f2cb6f6ba",
+    "versionCounter": 142,
     "triggerCount": 1,
     "tags": [],
     "shared": [
@@ -12146,7 +12393,7 @@
     ]
   },
   {
-    "updatedAt": "2026-02-22T16:08:46.156Z",
+    "updatedAt": "2026-02-25T04:02:01.810Z",
     "createdAt": "2026-02-09T23:19:03.803Z",
     "id": "FaH-ig5SWzZFCBx_RLigL",
     "name": "Cake Order Manager: Process",
@@ -12236,6 +12483,12 @@
                 "name": "last_prompt",
                 "value": "={{ $('Execute a SQL query').item.json.last_ai_prompt }}",
                 "type": "string"
+              },
+              {
+                "id": "d8a8b8c9-b971-41e9-b0fc-236235ba74b6",
+                "name": "general_information",
+                "value": "={{ $json.general_information }}",
+                "type": "object"
               }
             ]
           },
@@ -12556,6 +12809,10 @@
               {
                 "name": "last_ai_prompt",
                 "value": "={{ $('Execute a SQL query').item.json.last_ai_prompt }}"
+              },
+              {
+                "name": "general_information",
+                "value": "={{ $('Edit Fields1').item.json.general_information }}"
               }
             ]
           },
@@ -12793,6 +13050,10 @@
               {
                 "name": "last_ai_prompt",
                 "value": "={{ $('Execute a SQL query').item.json.last_ai_prompt }}"
+              },
+              {
+                "name": "general_information",
+                "value": "={{ $('HTTP Request').item.json.general_information }}"
               }
             ]
           },
@@ -13969,7 +14230,7 @@
             "query": {},
             "body": {
               "customer_id": 8265615223,
-              "user_message": "help",
+              "user_message": "I'd like to order a 3 tiered cake for my Birthday on the 17th April.",
               "source": "Telegram"
             },
             "webhookUrl": "http://localhost:5678/webhook/cakeOrder/process",
@@ -13978,9 +14239,9 @@
         }
       ]
     },
-    "versionId": "4278af05-eeb9-4434-b772-bcf389ce6e6e",
-    "activeVersionId": "4278af05-eeb9-4434-b772-bcf389ce6e6e",
-    "versionCounter": 775,
+    "versionId": "aaba5433-4f5f-4141-9d6f-ce48154de185",
+    "activeVersionId": "aaba5433-4f5f-4141-9d6f-ce48154de185",
+    "versionCounter": 789,
     "triggerCount": 1,
     "tags": [],
     "shared": [
@@ -14004,7 +14265,7 @@
     ]
   },
   {
-    "updatedAt": "2026-02-22T15:47:16.789Z",
+    "updatedAt": "2026-02-25T04:06:19.900Z",
     "createdAt": "2026-02-19T11:19:32.706Z",
     "id": "NzIp7qNlUOCGhSAb",
     "name": "Cake Order Manager: Handle Incomplete Order",
@@ -14050,7 +14311,7 @@
           "promptType": "define",
           "text": "=- **User_Context**: \nUSER_MESSAGE: \"\"\"{{ $('Edit Fields').item.json.user_message }}\"\"\"\nNEW_DATA: {{ $('Edit Fields').item.json.new_data }}\n",
           "options": {
-            "systemMessage": "=### ROLE\nYou are a professional, composed bakery concierge. Your goal is to finalize cake orders by cross-referencing user input with our production requirements.\n\n### CONTEXT\n- **Order State:** {{ JSON.stringify($('Edit Fields').item.json.updated_state) }}\n- **New Data:** {{ JSON.stringify($('Edit Fields').item.json.new_data) }}\n- **Errors:** {{ JSON.stringify($('Edit Fields').item.json.errors) }}\n- **Missing Information:** {{ JSON.stringify($('Edit Fields').item.json.missing) }}\n\n### INSTRUCTIONS\n1. **Prioritize Errors**: If `errors` exist, acknowledge the valid input first. Explain the specific issue using the provided error message as a technical requirement (e.g., \"For structural stability, upper tiers must be smaller than the base\"). Request a corrected value and stop.\n\n2. **Confirm Progress**: If `new_data` is present and no errors exist, provide a concise summary of the order's current status. Use the `Current State of Order` to ensure accuracy.\n\n3. **Address Inquiries**: Answer user questions directly using only the provided `order_config`. If the information isn't in the config, state that you will need to check with the kitchen.\n\n4. **Address Missing Data**: Check the `Current State of Order` for null values.\n   - Only request information for fields that are currently empty.\n   - Use the `display_name` for a natural tone.\n   - Provide the specific `options` list for any required field to ensure valid selection.\n   - Refer to layers by their sequence (e.g., \"the base layer,\" \"the second layer\").\n   - Limit requests to 2–3 items per response to maintain a professional pace and ensure that the questions flow into each other naturally.\n\n### CONSTRAINTS\n- **Tone**: Professional, steady, and mildly charming. \n- **Restricted Phrases**: Do not use \"I'm sorry,\" \"unfortunately,\" \"however,\" \"absolutely,\" \"wonderful,\" or \"certainly.\" \n- **Language**: Avoid \"tech talk\" (JSON, null, fields).\n- **Style**: Use clear, declarative sentences. Avoid exclamation points.\n- **Accuracy**: Only suggest options explicitly listed in the configuration.\n- **continuation**: Do not use the word \"confirm\" or \"finalize\". As you are asking for 2 - 3 items per turn, it might become repetitive for the user."
+            "systemMessage": "=### ROLE\nYou are a professional, composed bakery concierge. Your goal is to finalize cake orders by cross-referencing user input with our production requirements.\n\n### CONTEXT\n- **Order State:** {{ JSON.stringify($('Edit Fields').item.json.updated_state) }}\n- **New Data:** {{ JSON.stringify($('Edit Fields').item.json.new_data) }}\n- **Errors:** {{ JSON.stringify($('Edit Fields').item.json.errors) }}\n- **Missing Information:** {{ JSON.stringify($('Edit Fields').item.json.missing) }}\n- **General InformationL** {{ JSON.stringify($('Edit Fields').item.json.general_information) }}\n\n### INSTRUCTIONS\n1. **Prioritize Errors**: If `errors` exist, acknowledge the valid input first. Explain the specific issue using the provided error message as a technical requirement (e.g., \"For structural stability, upper tiers must be smaller than the base\"). Request a corrected value and stop.\n\n2. **Confirm Progress**: If `new_data` is present and no errors exist, provide a concise summary of the order's current status. Use the `Current State of Order` to ensure accuracy.\n\n3. **Address Inquiries**: Answer user questions directly using only the provided `order_config`. If the information isn't in the config, state that you will need to check with the kitchen.\n\n4. **Address Missing Data**: Check the `Current State of Order` for null values.\n   - Only request information for fields that are currently empty.\n   - Use the `display_name` for a natural tone.\n   - Provide the specific `options` list for any required field to ensure valid selection.\n   - Refer to layers by their sequence (e.g., \"the base layer,\" \"the second layer\").\n   - Limit requests to 2–3 items per response to maintain a professional pace and ensure that the questions flow into each other naturally.\n\n### CONSTRAINTS\n- **Tone**: Professional, steady, and mildly charming. \n- **Restricted Phrases**: Do not use \"I'm sorry,\" \"unfortunately,\" \"however,\" \"absolutely,\" \"wonderful,\" or \"certainly.\" \n- **Language**: Avoid \"tech talk\" (JSON, null, fields).\n- **Style**: Use clear, declarative sentences. Avoid exclamation points.\n- **Accuracy**: Only suggest options explicitly listed in the configuration.\n- **continuation**: Do not use the word \"confirm\" or \"finalize\". As you are asking for 2 - 3 items per turn, it might become repetitive for the user."
           }
         },
         "type": "@n8n/n8n-nodes-langchain.agent",
@@ -14069,7 +14330,7 @@
         "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
         "typeVersion": 1,
         "position": [
-          184,
+          192,
           32
         ],
         "id": "b316d451-b99b-4cd0-a7c7-c320a7f9a14a",
@@ -14180,6 +14441,12 @@
                 "name": "customer_id",
                 "value": "={{ $json.body.customer_id }}",
                 "type": "string"
+              },
+              {
+                "id": "e83a84cf-bb1d-4880-94a5-d1d71051b30c",
+                "name": "general_information",
+                "value": "={{ $json.body.general_information }}",
+                "type": "object"
               }
             ]
           },
@@ -14272,7 +14539,7 @@
               "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
               "content-type": "application/json",
               "user-agent": "axios/1.12.0",
-              "content-length": "4064",
+              "content-length": "13362",
               "accept-encoding": "gzip, compress, deflate, br",
               "host": "n8n_app:5678",
               "connection": "close"
@@ -14307,7 +14574,7 @@
                   "display_name": "Delivery Service",
                   "field_type": "boolean",
                   "scope": "global",
-                  "sort_order": 30,
+                  "sort_order": 40,
                   "extraction_hint": "True for phrases like \"bring it to me,\" \"drop off,\" or \"deliver.\" False for \"pick up,\" \"self-collect,\" or \"I'll come by.\"",
                   "rules": [],
                   "options": [
@@ -14320,12 +14587,12 @@
                   },
                   "option_prices": {}
                 },
-                "cake_theme": {
-                  "display_name": "Theme/Design",
+                "event_type": {
+                  "display_name": "Event Type",
                   "field_type": "string",
                   "scope": "global",
-                  "sort_order": 60,
-                  "extraction_hint": "Extract the visual style, character, or occasion (e.g., \"Star Wars\", \"Wedding\", \"Minimalist\"). If simple/plain, map to \"None\".",
+                  "sort_order": 40,
+                  "extraction_hint": "Extract the type of event (e.g., \"Birthday\", \"Wedding\", \"Graduation\").",
                   "rules": [],
                   "options": [],
                   "option_labels": {},
@@ -14355,7 +14622,7 @@
                   "field_type": "string",
                   "scope": "global",
                   "sort_order": 120,
-                  "extraction_hint": "Extract the URL or file identifier of any images shared by the user. If the user says \"like this photo\" or \"attached is a sketch,\" link that reference here.",
+                  "extraction_hint": "The actual image upload and storage will be handled separately. Use \"None\" if no image is provided.",
                   "rules": [],
                   "options": [],
                   "option_labels": {},
@@ -14405,6 +14672,101 @@
                   },
                   "option_prices": {}
                 },
+                "tier_1_flavor": {
+                  "display_name": "Tier 1 Cake Flavor",
+                  "field_type": "select",
+                  "scope": "tier",
+                  "sort_order": 90,
+                  "extraction_hint": "Match the flavor against known options. If user mentions different flavors for different tiers, map them specifically (e.g., \"bottom tier chocolate, top vanilla\").",
+                  "rules": [],
+                  "options": [
+                    "lemon",
+                    "carrot",
+                    "marble",
+                    "coconut",
+                    "chocolate",
+                    "red velvet",
+                    "strawberry",
+                    "banana bread",
+                    "butter pecan",
+                    "vanilla bean",
+                    "pineapple sponge",
+                    "cookies and cream",
+                    "caribbean fruit/ rum",
+                    "white chocolate sponge"
+                  ],
+                  "option_labels": {
+                    "lemon": "Lemon",
+                    "carrot": "Carrot",
+                    "marble": "Marble",
+                    "coconut": "Coconut",
+                    "chocolate": "Chocolate",
+                    "red velvet": "Red Velvet",
+                    "strawberry": "Strawberry",
+                    "banana bread": "Banana Bread",
+                    "butter pecan": "Butter Pecan",
+                    "vanilla bean": "Vanilla Bean",
+                    "pineapple sponge": "Pineapple Sponge",
+                    "cookies and cream": "Cookies and Cream",
+                    "caribbean fruit/ rum": "Caribbean Fruit/ Rum",
+                    "white chocolate sponge": "White Chocolate Sponge"
+                  },
+                  "option_prices": {}
+                },
+                "tier_1_layers": {
+                  "display_name": "Tier 1 Internal Layers",
+                  "field_type": "integer",
+                  "scope": "tier",
+                  "sort_order": 100,
+                  "extraction_hint": "Count the horizontal sponge slices inside a single tier. Often called \"double layer\" or \"triple layer.\" Distinct from the number of Tiers.",
+                  "rules": [],
+                  "options": [
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "option_labels": {
+                    "2": "2 Layers",
+                    "3": "3 Layers",
+                    "4": "4 Layers"
+                  },
+                  "option_prices": {}
+                },
+                "tier_1_filling": {
+                  "display_name": "Tier 1 Filling Flavor",
+                  "field_type": "select",
+                  "scope": "tier",
+                  "sort_order": 90,
+                  "extraction_hint": "Map requested filling to available inventory. Note vegan options if specified.",
+                  "rules": [],
+                  "options": [
+                    "Lemon",
+                    "Coconut",
+                    "Vanilla",
+                    "Butter rum",
+                    "Strawberry",
+                    "Cream cheese",
+                    "Peanut butter",
+                    "White chocolate",
+                    "Double chocolate",
+                    "Coconut rum cream",
+                    "Dark chocolate ganache"
+                  ],
+                  "option_labels": {
+                    "Lemon": "Lemon",
+                    "Coconut": "Coconut",
+                    "Vanilla": "Vanilla",
+                    "Butter rum": "Butter rum",
+                    "Strawberry": "Strawberry",
+                    "Cream cheese": "Cream cheese",
+                    "Peanut butter": "Peanut butter",
+                    "White chocolate": "White chocolate",
+                    "Double chocolate": "Double chocolate",
+                    "Coconut rum cream": "Coconut rum cream",
+                    "Dark chocolate ganache": "Dark chocolate ganache"
+                  },
+                  "option_prices": {}
+                },
                 "tier_2_size": {
                   "display_name": "Tier 2 Tier Size",
                   "field_type": "select",
@@ -14448,35 +14810,324 @@
                     "quarter sheet": "Quarter Sheet"
                   },
                   "option_prices": {}
+                },
+                "tier_2_flavor": {
+                  "display_name": "Tier 2 Cake Flavor",
+                  "field_type": "select",
+                  "scope": "tier",
+                  "sort_order": 90,
+                  "extraction_hint": "Match the flavor against known options. If user mentions different flavors for different tiers, map them specifically (e.g., \"bottom tier chocolate, top vanilla\").",
+                  "rules": [],
+                  "options": [
+                    "lemon",
+                    "carrot",
+                    "marble",
+                    "coconut",
+                    "chocolate",
+                    "red velvet",
+                    "strawberry",
+                    "banana bread",
+                    "butter pecan",
+                    "vanilla bean",
+                    "pineapple sponge",
+                    "cookies and cream",
+                    "caribbean fruit/ rum",
+                    "white chocolate sponge"
+                  ],
+                  "option_labels": {
+                    "lemon": "Lemon",
+                    "carrot": "Carrot",
+                    "marble": "Marble",
+                    "coconut": "Coconut",
+                    "chocolate": "Chocolate",
+                    "red velvet": "Red Velvet",
+                    "strawberry": "Strawberry",
+                    "banana bread": "Banana Bread",
+                    "butter pecan": "Butter Pecan",
+                    "vanilla bean": "Vanilla Bean",
+                    "pineapple sponge": "Pineapple Sponge",
+                    "cookies and cream": "Cookies and Cream",
+                    "caribbean fruit/ rum": "Caribbean Fruit/ Rum",
+                    "white chocolate sponge": "White Chocolate Sponge"
+                  },
+                  "option_prices": {}
+                },
+                "tier_2_layers": {
+                  "display_name": "Tier 2 Internal Layers",
+                  "field_type": "integer",
+                  "scope": "tier",
+                  "sort_order": 100,
+                  "extraction_hint": "Count the horizontal sponge slices inside a single tier. Often called \"double layer\" or \"triple layer.\" Distinct from the number of Tiers.",
+                  "rules": [],
+                  "options": [
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "option_labels": {
+                    "2": "2 Layers",
+                    "3": "3 Layers",
+                    "4": "4 Layers"
+                  },
+                  "option_prices": {}
+                },
+                "tier_2_filling": {
+                  "display_name": "Tier 2 Filling Flavor",
+                  "field_type": "select",
+                  "scope": "tier",
+                  "sort_order": 90,
+                  "extraction_hint": "Map requested filling to available inventory. Note vegan options if specified.",
+                  "rules": [],
+                  "options": [
+                    "Lemon",
+                    "Coconut",
+                    "Vanilla",
+                    "Butter rum",
+                    "Strawberry",
+                    "Cream cheese",
+                    "Peanut butter",
+                    "White chocolate",
+                    "Double chocolate",
+                    "Coconut rum cream",
+                    "Dark chocolate ganache"
+                  ],
+                  "option_labels": {
+                    "Lemon": "Lemon",
+                    "Coconut": "Coconut",
+                    "Vanilla": "Vanilla",
+                    "Butter rum": "Butter rum",
+                    "Strawberry": "Strawberry",
+                    "Cream cheese": "Cream cheese",
+                    "Peanut butter": "Peanut butter",
+                    "White chocolate": "White chocolate",
+                    "Double chocolate": "Double chocolate",
+                    "Coconut rum cream": "Coconut rum cream",
+                    "Dark chocolate ganache": "Dark chocolate ganache"
+                  },
+                  "option_prices": {}
+                },
+                "tier_3_size": {
+                  "display_name": "Tier 3 Tier Size",
+                  "field_type": "select",
+                  "scope": "tier",
+                  "sort_order": 80,
+                  "extraction_hint": "Extract the diameter of the specific tier. Normalize \"10 inch\" or \"10\\\"\" to \"10\". If multiple tiers, identify which size belongs to which position (bottom-up).",
+                  "rules": [
+                    {
+                      "type": "min_base_for_tiers",
+                      "config": {
+                        "tiers": 2,
+                        "min_inches": 8
+                      },
+                      "error_message": "For a 2-tier cake, the bottom tier must be at least 8 inches."
+                    },
+                    {
+                      "type": "min_base_for_tiers",
+                      "config": {
+                        "tiers": 3,
+                        "min_inches": 10
+                      },
+                      "error_message": "A 3-tier cake needs a sturdy 10-inch base to stay upright!"
+                    }
+                  ],
+                  "options": [
+                    "6",
+                    "8",
+                    "9",
+                    "10",
+                    "12",
+                    "half sheet",
+                    "quarter sheet"
+                  ],
+                  "option_labels": {
+                    "6": "6\"",
+                    "8": "8\"",
+                    "9": "9\"",
+                    "10": "10\"",
+                    "12": "12\"",
+                    "half sheet": "Half Sheet",
+                    "quarter sheet": "Quarter Sheet"
+                  },
+                  "option_prices": {}
+                },
+                "tier_3_flavor": {
+                  "display_name": "Tier 3 Cake Flavor",
+                  "field_type": "select",
+                  "scope": "tier",
+                  "sort_order": 90,
+                  "extraction_hint": "Match the flavor against known options. If user mentions different flavors for different tiers, map them specifically (e.g., \"bottom tier chocolate, top vanilla\").",
+                  "rules": [],
+                  "options": [
+                    "lemon",
+                    "carrot",
+                    "marble",
+                    "coconut",
+                    "chocolate",
+                    "red velvet",
+                    "strawberry",
+                    "banana bread",
+                    "butter pecan",
+                    "vanilla bean",
+                    "pineapple sponge",
+                    "cookies and cream",
+                    "caribbean fruit/ rum",
+                    "white chocolate sponge"
+                  ],
+                  "option_labels": {
+                    "lemon": "Lemon",
+                    "carrot": "Carrot",
+                    "marble": "Marble",
+                    "coconut": "Coconut",
+                    "chocolate": "Chocolate",
+                    "red velvet": "Red Velvet",
+                    "strawberry": "Strawberry",
+                    "banana bread": "Banana Bread",
+                    "butter pecan": "Butter Pecan",
+                    "vanilla bean": "Vanilla Bean",
+                    "pineapple sponge": "Pineapple Sponge",
+                    "cookies and cream": "Cookies and Cream",
+                    "caribbean fruit/ rum": "Caribbean Fruit/ Rum",
+                    "white chocolate sponge": "White Chocolate Sponge"
+                  },
+                  "option_prices": {}
+                },
+                "tier_3_layers": {
+                  "display_name": "Tier 3 Internal Layers",
+                  "field_type": "integer",
+                  "scope": "tier",
+                  "sort_order": 100,
+                  "extraction_hint": "Count the horizontal sponge slices inside a single tier. Often called \"double layer\" or \"triple layer.\" Distinct from the number of Tiers.",
+                  "rules": [],
+                  "options": [
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "option_labels": {
+                    "2": "2 Layers",
+                    "3": "3 Layers",
+                    "4": "4 Layers"
+                  },
+                  "option_prices": {}
+                },
+                "tier_3_filling": {
+                  "display_name": "Tier 3 Filling Flavor",
+                  "field_type": "select",
+                  "scope": "tier",
+                  "sort_order": 90,
+                  "extraction_hint": "Map requested filling to available inventory. Note vegan options if specified.",
+                  "rules": [],
+                  "options": [
+                    "Lemon",
+                    "Coconut",
+                    "Vanilla",
+                    "Butter rum",
+                    "Strawberry",
+                    "Cream cheese",
+                    "Peanut butter",
+                    "White chocolate",
+                    "Double chocolate",
+                    "Coconut rum cream",
+                    "Dark chocolate ganache"
+                  ],
+                  "option_labels": {
+                    "Lemon": "Lemon",
+                    "Coconut": "Coconut",
+                    "Vanilla": "Vanilla",
+                    "Butter rum": "Butter rum",
+                    "Strawberry": "Strawberry",
+                    "Cream cheese": "Cream cheese",
+                    "Peanut butter": "Peanut butter",
+                    "White chocolate": "White chocolate",
+                    "Double chocolate": "Double chocolate",
+                    "Coconut rum cream": "Coconut rum cream",
+                    "Dark chocolate ganache": "Dark chocolate ganache"
+                  },
+                  "option_prices": {}
                 }
               },
               "updated_state": {
-                "tiers": 2,
+                "tiers": 3,
                 "has_ac": null,
                 "delivery": null,
-                "cake_theme": null,
-                "event_date": "2026-02-28",
-                "client_name": "Damien",
+                "cake_theme": "Birthday",
+                "event_date": "2026-04-17",
+                "client_name": "Andreas",
                 "special_note": null,
+                "celebrant_name": "Sandra",
                 "image_reference": null,
                 "delivery_address": null,
                 "tier_definitions": [
                   {
                     "size": null,
-                    "flavor": "Vanilla",
-                    "layers": 2,
+                    "flavor": null,
+                    "layers": null,
                     "tier_index": 1
                   },
                   {
                     "size": null,
-                    "flavor": "Vanilla",
-                    "layers": 2,
+                    "flavor": null,
+                    "layers": null,
                     "tier_index": 2
+                  },
+                  {
+                    "size": null,
+                    "flavor": null,
+                    "layers": null,
+                    "tier_index": 3
                   }
                 ]
               },
-              "user_message": "I'd like to confirm my order",
-              "last_ai_prompt": "Confirm your order is fine"
+              "user_message": "I'd like to order a 3 tiered cake for my Birthday on the 17th April.",
+              "last_ai_prompt": "Thank you, Andreas. We have noted that the cake is for Sandra.\n\nTo continue with your order, could you please tell me how many tiers you would like for the cake? We offer 1, 2, or 3 tiers.\n\nAlso, what is the date of the event? Please keep in mind we need at least 7 days notice.\n\nFinally, will you be picking up the cake, or would you prefer delivery service?",
+              "customer_id": "8265615223",
+              "general_information": {
+                "website": {
+                  "value": "https://www.preciousplaceanu.com",
+                  "display_name": "Website URL",
+                  "field_description": "Our official website where customers can learn more about our offerings and place orders online."
+                },
+                "facebook": {
+                  "value": "https://www.facebook.com/preciousplaceanu",
+                  "display_name": "Facebook Page",
+                  "field_description": "Our Facebook page for updates and customer engagement."
+                },
+                "location": {
+                  "value": "St. Mary's Street , Saint John, Antigua",
+                  "display_name": "Location",
+                  "field_description": "The physical address of our bakery for pickups and visits."
+                },
+                "Instagram": {
+                  "value": "https://www.instagram.com/preciousplaceanu",
+                  "display_name": "Instagram Page",
+                  "field_description": "Our Instagram handle for customers to follow."
+                },
+                "contact_email": {
+                  "value": "preciousplaceanu@gmail.com",
+                  "display_name": "Contact Email",
+                  "field_description": "The best email to reach us for inquiries, custom orders, or support."
+                },
+                "contact_phone": {
+                  "value": "+1 268-723-1099",
+                  "display_name": "Contact Phone",
+                  "field_description": "Our customer service phone number for direct communication."
+                },
+                "delivery_cost": {
+                  "value": "$5 within 5 miles, $10 within 10 miles, Free beyond 10 miles",
+                  "display_name": "Delivery Cost",
+                  "field_description": "Our delivery pricing structure based on distance from the bakery."
+                },
+                "business_hours": {
+                  "value": "Mon-Thur 8:30am-6pm, Fri: 8:00am-6pm, Sat 11am-6pm, Sun Closed",
+                  "display_name": "Business Hours",
+                  "field_description": "Our bakery is open during these hours. Orders placed outside of these times will be processed the next business day."
+                },
+                "pickup_address": {
+                  "value": "St. Mary's Street , Saint John, Antigua",
+                  "display_name": "Pickup Address",
+                  "field_description": "The address where customers can pick up their orders if they choose not to have them delivered."
+                }
+              }
             },
             "webhookUrl": "http://localhost:5678/webhook/cakeOrder/handleIncompleteOrder",
             "executionMode": "production"
@@ -14484,9 +15135,9 @@
         }
       ]
     },
-    "versionId": "4617809f-765b-4526-a3b0-e6693684fcec",
-    "activeVersionId": "4617809f-765b-4526-a3b0-e6693684fcec",
-    "versionCounter": 192,
+    "versionId": "49428b29-8c87-4d40-a8bb-aeef5ef81d27",
+    "activeVersionId": "49428b29-8c87-4d40-a8bb-aeef5ef81d27",
+    "versionCounter": 207,
     "triggerCount": 1,
     "tags": [],
     "shared": [
@@ -16298,7 +16949,7 @@
     ]
   },
   {
-    "updatedAt": "2026-02-20T02:03:25.775Z",
+    "updatedAt": "2026-02-25T03:30:14.038Z",
     "createdAt": "2026-02-09T15:53:36.877Z",
     "id": "svxtePEASCSC44ZYdUg-V",
     "name": "Cake Order Manager: Get Config",
@@ -16405,6 +17056,42 @@
         ],
         "id": "20076577-3a2c-47ee-824a-85283326e197",
         "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "operation": "executeQuery",
+          "query": "SELECT jsonb_object_agg(field_key, field_data) AS general_information\nFROM (\n  SELECT \n    field_key, \n    jsonb_build_object(\n      'display_name', display_name,\n      'value', value,\n      'field_description', field_description\n    ) AS field_data\n  FROM general_information \n) AS subquery;",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.postgres",
+        "typeVersion": 2.6,
+        "position": [
+          -64,
+          -454.9802513464991
+        ],
+        "id": "a572c0bb-8ac2-4a3d-a695-9721068d5c8a",
+        "name": "Execute a SQL query2",
+        "credentials": {
+          "postgres": {
+            "id": "1lBfXhbGIpsvL7vQ",
+            "name": "Custom Order DB Credentials"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "mode": "combine",
+          "combineBy": "combineAll",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.merge",
+        "typeVersion": 3.2,
+        "position": [
+          176,
+          -400
+        ],
+        "id": "8b179a32-3cfb-4b4e-b48b-75a52eb68db7",
+        "name": "Merge1"
       }
     ],
     "connections": {
@@ -16418,6 +17105,11 @@
             },
             {
               "node": "Execute a SQL query",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Execute a SQL query2",
               "type": "main",
               "index": 0
             }
@@ -16439,9 +17131,9 @@
         "main": [
           [
             {
-              "node": "Merge",
+              "node": "Merge1",
               "type": "main",
-              "index": 0
+              "index": 1
             }
           ]
         ]
@@ -16464,6 +17156,28 @@
               "node": "Merge",
               "type": "main",
               "index": 1
+            }
+          ]
+        ]
+      },
+      "Execute a SQL query2": {
+        "main": [
+          [
+            {
+              "node": "Merge1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Merge1": {
+        "main": [
+          [
+            {
+              "node": "Merge",
+              "type": "main",
+              "index": 0
             }
           ]
         ]
@@ -16497,9 +17211,9 @@
         }
       ]
     },
-    "versionId": "618ed680-a766-47fe-ae30-10e8372a0615",
-    "activeVersionId": "618ed680-a766-47fe-ae30-10e8372a0615",
-    "versionCounter": 93,
+    "versionId": "3242d4fc-6bb0-4288-b68f-317c37c4a322",
+    "activeVersionId": "3242d4fc-6bb0-4288-b68f-317c37c4a322",
+    "versionCounter": 126,
     "triggerCount": 1,
     "tags": [],
     "shared": [
