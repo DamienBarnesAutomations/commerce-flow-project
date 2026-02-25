@@ -289,6 +289,7 @@ INSERT INTO field_rules (field_key, rule_type, config, error_message) VALUES
 
 -- Visibility constraint
 ('delivery_address', 'dependency', '{"depends_on": "delivery", "value": true}', 'Where should I deliver the cake?'),
+('celebrant_age', 'dependency', '{"depends_on": "event_type", "value": "Birthday"}', 'What is the age of the celebrant?'),
 
 -- Structural Stability (The Cake-Specific Logic)
 ('size', 'min_base_for_tiers', '{"tiers": 2, "min_inches": 8}', 'For a 2-tier cake, the bottom tier must be at least 8 inches.'),
@@ -331,3 +332,26 @@ INSERT INTO order_config (
  '[{"label": "Vanilla", "value": "Vanilla"}, {"label": "Chocolate", "value": "Chocolate"}, {"label": "Lemon", "value": "Lemon"}, {"label": "Cream Cheese", "value": "Cream Cheese"}, {"label": "Nutella", "value": "Nutella"}, {"label": "Coffee", "value": "Coffee"}, {"label": "Guava", "value": "Guava"}, {"label": "Strawberry", "value": "Strawberry"}, {"label": "Cookies n Cream", "value": "Cookies n Cream"}, {"label": "Spiced", "value": "Spiced"}]',
  'Match the frosting flavor against known options. If user mentions different frostings for different tiers, map them specifically (e.g., "bottom tier chocolate, top vanilla").',
  100, true);
+
+
+
+
+ CREATE TABLE IF NOT EXISTS general_information (
+    field_id SERIAL PRIMARY KEY,
+    field_key VARCHAR(50) UNIQUE NOT NULL,
+    display_name VARCHAR(100) NOT NULL,
+    value TEXT NOT NULL,
+    field_description TEXT NOT NULL
+);
+
+
+INSERT INTO general_information (field_key, display_name, value, field_description) VALUES
+('business_hours', 'Business Hours', 'Mon-Thur 8:30am-6pm, Fri: 8:00am-6pm, Sat 11am-6pm, Sun Closed', 'Our bakery is open during these hours. Orders placed outside of these times will be processed the next business day.'),
+('Instagram', 'Instagram Page', 'https://www.instagram.com/preciousplaceanu', 'Our Instagram handle for customers to follow.'),
+('location', 'Location', 'St. Mary''s Street , Saint John, Antigua', 'The physical address of our bakery for pickups and visits.'),
+('delivery_cost', 'Delivery Cost', '$5 within 5 miles, $10 within 10 miles, Free beyond 10 miles', 'Our delivery pricing structure based on distance from the bakery.'),   
+('facebook', 'Facebook Page', 'https://www.facebook.com/preciousplaceanu', 'Our Facebook page for updates and customer engagement.'),
+('contact_email', 'Contact Email', 'preciousplaceanu@gmail.com', 'The best email to reach us for inquiries, custom orders, or support.'),
+('contact_phone', 'Contact Phone', '+1 268-723-1099', 'Our customer service phone number for direct communication.'),
+('pickup_address', 'Pickup Address', 'St. Mary''s Street , Saint John, Antigua', 'The address where customers can pick up their orders if they choose not to have them delivered.'),
+('website', 'Website URL', 'https://www.preciousplaceanu.com', 'Our official website where customers can learn more about our offerings and place orders online.');
