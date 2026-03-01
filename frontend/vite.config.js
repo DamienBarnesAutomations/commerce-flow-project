@@ -20,6 +20,10 @@ export default defineConfig(({ mode }) => {
     },
     host: true, // Needed for Docker mapping
     port: 5173,
+    hmr: {
+      clientPort: 443, // Force the browser to look for HMR on the SSL port
+    },
   },
+  base: '/pos/'
 }
 })

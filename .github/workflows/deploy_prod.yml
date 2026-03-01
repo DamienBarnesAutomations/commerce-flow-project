@@ -1,0 +1,133 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: main
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env from JSON
+        run: |
+          echo '${{ secrets.ENV_JSON }}' \
+          | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
+
+      - name: Install SSH client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+
+      - name: Setup Runner SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+
+      - name: Prepare Server Directories
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+          "sudo mkdir -p /app_tmp && sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app_tmp"
+
+      - name: Transfer Setup Files
+        run: |
+          # Prepare Key
+          echo "${{ secrets.GIT_PRIVATE_KEY }}" > github_deploy_key
+          chmod 600 github_deploy_key
+          
+          # Prepare SSH Config
+          cat <<EOT > github_ssh_config
+          Host github.com
+            IdentityFile ~/.ssh/github_deploy_key
+            StrictHostKeyChecking no
+          EOT
+
+          # Transfer everything at once
+          scp .env github_deploy_key github_ssh_config ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app_tmp/
+
+      - name: Configure Server SSH for GitHub
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            
+            # Move and protect key
+            mv /app_tmp/github_deploy_key ~/.ssh/github_deploy_key
+            chmod 600 ~/.ssh/github_deploy_key
+            
+            # Replace config with clean version
+            mv /app_tmp/github_ssh_config ~/.ssh/config
+            chmod 600 ~/.ssh/config
+            
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+          EOF
+
+      - name: Sync Repository and Finalize
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            if [ ! -d "/app/.git" ]; then
+              sudo mkdir -p /app
+              sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app
+              sudo rm -rf /app/*
+              git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
+            else
+              cd /app
+              git fetch origin staging
+              git reset --hard origin/staging
+            fi
+            
+            mv /app_tmp/.env /app/.env
+          EOF
+
+      - name: Manager n8n Folders
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            sudo mkdir /app/flows2 /app/public/ /app/public/images /app/public/images/product /app/public/images/tmp
+            sudo mkdir /app/public/images/cake-orders /app/public/images/cake-orders/tmp
+
+            sudo chown -R 1000:1000 /app/flows2
+            sudo chown -R 1000:1000 /app/public
+            sudo chown -R 1000:1000 /app/public/images
+            sudo chown -R 1000:1000 /app/public/images/product
+            sudo chown -R 1000:1000 /app/public/images/tmp
+            sudo chown -R 1000:1000 /app/public/images/cake-orders
+            sudo chown -R 1000:1000 /app/public/images/cake-orders/tmp
+            
+            sudo chown -R 1000:1000 /app/n8n-workflows
+
+            sudo chmod -R 775 /app/flows2 /app/public /app/public/images /app/public/images/product /app/public/images/tmp /app/n8n-workflows
+            sudo chmod -R 775 /app/public/images/cake-orders /app/public/images/cake-orders/tmp
+          EOF
+
+      - name: Inject ACME Secret
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            # 1. Create the directory
+            mkdir -p /app/letsencrypt
+            
+            # 2. Write the secret content to the file
+            # We use a heredoc to ensure the JSON formatting is preserved
+            cat << 'ACME_EOF' > /app/letsencrypt/acme.json
+          ${{ secrets.ACME_JSON }}
+          ACME_EOF
+
+            # 3. Set the strict permissions Traefik requires
+            chmod 600 /app/letsencrypt/acme.json
+            
+            # 4. Ensure ownership (Traefik usually runs as root in Docker unless specified)
+            # but setting it to your user is fine as the volume mount will handle it.
+            sudo chown ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app/letsencrypt/acme.json
+          EOF
+      - name: Deploy with Docker Compose
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            cd /app
+            sudo docker compose down
+            sudo docker compose up -d --build --remove-orphans
+            sudo docker image prune -f
+          EOF

@@ -204,7 +204,7 @@ INSERT INTO user_intents (intent_key, classification_guide) VALUES
 
 ('GREETING', 'Social pleasantries and openers. "Hello", "Hi", "Good morning". If a greeting is combined with an order (e.g., "Hi, I want a cake"), prioritize the ordering intent.'),
 
-('HELP', 'User is stuck. "How do I use this?", "What can I do?", "help", "instructions".'),
+('HELP', 'User is stuck. "How do I use this?", "What can I do?", "help", "instructions", "how do I get started?", General Information related to the business such as Facebook or Instagram page, Delivery information, location and opening hours.'),
 
 ('UNKNOWN', 'Fallback for gibberish, unrelated topics (weather, news), or completely ambiguous input that doesn''t fit the categories above.');
 
@@ -349,7 +349,7 @@ INSERT INTO general_information (field_key, display_name, value, field_descripti
 ('business_hours', 'Business Hours', 'Mon-Thur 8:30am-6pm, Fri: 8:00am-6pm, Sat 11am-6pm, Sun Closed', 'Our bakery is open during these hours. Orders placed outside of these times will be processed the next business day.'),
 ('Instagram', 'Instagram Page', 'https://www.instagram.com/preciousplaceanu', 'Our Instagram handle for customers to follow.'),
 ('location', 'Location', 'St. Mary''s Street , Saint John, Antigua', 'The physical address of our bakery for pickups and visits.'),
-('delivery_cost', 'Delivery Cost', '$5 within 5 miles, $10 within 10 miles, Free beyond 10 miles', 'Our delivery pricing structure based on distance from the bakery.'),   
+('delivery_cost', 'Delivery Cost', 'Starts at $15 in St. Johns. Please submit full address for a quote', 'Our delivery pricing structure based on distance from the bakery.'),   
 ('facebook', 'Facebook Page', 'https://www.facebook.com/preciousplaceanu', 'Our Facebook page for updates and customer engagement.'),
 ('contact_email', 'Contact Email', 'preciousplaceanu@gmail.com', 'The best email to reach us for inquiries, custom orders, or support.'),
 ('contact_phone', 'Contact Phone', '+1 268-723-1099', 'Our customer service phone number for direct communication.'),

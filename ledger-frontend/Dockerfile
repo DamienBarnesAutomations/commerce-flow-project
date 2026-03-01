@@ -1,8 +1,29 @@
-FROM node:20-slim
+# Stage 1: Build
+FROM node:20-alpine AS build-stage
 WORKDIR /app
-COPY package.json ./
-# Disabling the "progress bar" sometimes fixes hangs in Docker's terminal
-RUN npm install --no-progress --loglevel warn
+COPY package*.json ./
+RUN npm install
 COPY . .
-EXPOSE 5174
-CMD ["npm", "run", "dev", "--", "--host"]
+
+ARG VITE_API_BASE_URL
+ARG VITE_APP_TITLE
+ARG VITE_GET_JOURNAL_ENTRIES_WEBHOOK
+ARG VITE_GET_ACCOUNTS_WEBHOOK
+ARG VITE_GET_GENERAL_LEDGER_WEBHOOK
+ARG VITE_GET_TRIAL_BALANCE_WEBHOOK
+ARG VITE_GET_CATEGORIES_WEBHOOK
+ARG VITE_GET_BALANCE_SHEET_WEBHOOK
+ARG VITE_GET_PROFIT_LOSS_WEBHOOK
+ARG VITE_POST_JOURNAL_ENTRIES_WEBHOOK
+ARG VITE_CREATE_ACCOUNT_WEBHOOK
+ARG VITE_GET_INCOME_WEBHOOK
+ARG VITE_GET_EXPENSE_WEBHOOK
+
+RUN npm run build
+
+# Stage 2: Serve
+FROM nginx:alpine
+COPY --from=build-stage /app/dist /usr/share/nginx/html/accounting
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
