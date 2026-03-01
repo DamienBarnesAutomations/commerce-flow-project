@@ -133,24 +133,30 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${API_BASE_URL}
+        - VITE_IMAGE_BASE_URL=${IMAGE_BASE_URL}
+        - VITE_CURRENCY=$
+        - VITE_APP_TITLE=Precious Place POS
+        - VITE_APP_ICON=/icon.png
+        - VITE_LOGO=precious_place_logo-removebg.png
+        - DOMAIN_OR_IP=${DOMAIN_OR_IP}
+        - VITE_GET_PRODUCTS_WEBHOOK=${API_BASE_URL}pos/products
+        - VITE_RECORD_SALES_WEBHOOK=${API_BASE_URL}pos/recordSales
+        - VITE_DAILY_SALES_WEBHOOK=${API_BASE_URL}pos/dailyTotalSales
     container_name: pos_frontend
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN_OR_IP}`)"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN_OR_IP}`) && PathPrefix(`/pos`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls.certresolver=myresolver"
       - "traefik.http.routers.frontend.tls.domains[0].main=${BASE_DOMAIN}"
       - "traefik.http.routers.frontend.tls.domains[0].sans=*.${BASE_DOMAIN}"
-      - "traefik.http.services.frontend.loadbalancer.server.port=5173"
-      - "traefik.http.routers.frontend.middlewares=frontend-auth"
-      - "traefik.http.middlewares.frontend-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
-      - "traefik.http.middlewares.frontend-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      #- "traefik.http.routers.frontend.middlewares=frontend-auth"
+      #- "traefik.http.middlewares.frontend-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
+      #- "traefik.http.middlewares.frontend-auth.forwardauth.trustForwardHeader=true"
     restart: always
-    ports:
-      - "5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules # Prevents local node_modules from overwriting container ones
     environment:
       - VITE_API_BASE_URL=${API_BASE_URL}
       - VITE_IMAGE_BASE_URL=${IMAGE_BASE_URL}
@@ -162,17 +168,33 @@ services:
       - VITE_GET_PRODUCTS_WEBHOOK=${API_BASE_URL}pos/products
       - VITE_RECORD_SALES_WEBHOOK=${API_BASE_URL}pos/recordSales
       - VITE_DAILY_SALES_WEBHOOK=${API_BASE_URL}pos/dailyTotalSales
-      
+    expose:
+      - "80"
     depends_on:
       - n8n_app
       - image_server
       - python_app
     
+   
     
   ledger_frontend:
     build:
       context: ./ledger-frontend
       dockerfile: Dockerfile
+      args:
+      - VITE_API_BASE_URL=${API_BASE_URL}
+      - VITE_APP_TITLE=Accounting
+      - VITE_GET_JOURNAL_ENTRIES_WEBHOOK=${API_BASE_URL}accounting/journalEntries
+      - VITE_GET_ACCOUNTS_WEBHOOK=${API_BASE_URL}accounting/accounts
+      - VITE_GET_GENERAL_LEDGER_WEBHOOK=${API_BASE_URL}accounting/ledger
+      - VITE_GET_TRIAL_BALANCE_WEBHOOK=${API_BASE_URL}accounting/trialBalance
+      - VITE_GET_CATEGORIES_WEBHOOK=${API_BASE_URL}accounting/categories
+      - VITE_GET_BALANCE_SHEET_WEBHOOK=${API_BASE_URL}accounting/balanceSheet
+      - VITE_GET_PROFIT_LOSS_WEBHOOK=${API_BASE_URL}accounting/profitAndLoss
+      - VITE_POST_JOURNAL_ENTRIES_WEBHOOK=${API_BASE_URL}accounting/journalEntry
+      - VITE_CREATE_ACCOUNT_WEBHOOK=${API_BASE_URL}accounting/createAccount
+      - VITE_GET_INCOME_WEBHOOK=${API_BASE_URL}accounting/incomeReport
+      - VITE_GET_EXPENSE_WEBHOOK=${API_BASE_URL}accounting/expenseReport
     container_name: ledger_frontend
     labels:
       - "traefik.enable=true"
@@ -181,17 +203,14 @@ services:
       - "traefik.http.routers.ledger.tls.certresolver=myresolver"
       - "traefik.http.routers.ledger.tls.domains[0].main=${BASE_DOMAIN}"
       - "traefik.http.routers.ledger.tls.domains[0].sans=*.${BASE_DOMAIN}"
-      - "traefik.http.services.ledger.loadbalancer.server.port=5174"
+      - "traefik.http.services.ledger.loadbalancer.server.port=80"
       # Forward Auth
       - "traefik.http.routers.ledger.middlewares=ledger-auth"
       - "traefik.http.middlewares.ledger-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
       - "traefik.http.middlewares.ledger-auth.forwardauth.trustForwardHeader=true"
     restart: always
-    ports:
-      - "5174"  
-    volumes:
-      - ./ledger-frontend:/app
-      - /app/node_modules
+    expose:
+      - "80"  
     environment:
       - VITE_API_BASE_URL=${API_BASE_URL}
       - VITE_APP_TITLE=Accounting
@@ -215,6 +234,11 @@ services:
     build:
       context: ./custom_cake_frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${API_BASE_URL}
+        - VITE_APP_TITLE=Custom Cake
+        - VITE_IMAGE_BASE_URL=${IMAGE_BASE_URL}
+        - DOMAIN_OR_IP=${DOMAIN_OR_IP}
     container_name: custom_cake_frontend
     labels:
       - "traefik.enable=true"
@@ -223,17 +247,14 @@ services:
       - "traefik.http.routers.custom_cake.tls.certresolver=myresolver"
       - "traefik.http.routers.custom_cake.tls.domains[0].main=${BASE_DOMAIN}"
       - "traefik.http.routers.custom_cake.tls.domains[0].sans=*.${BASE_DOMAIN}"
-      - "traefik.http.services.custom_cake.loadbalancer.server.port=5175"
+      - "traefik.http.services.custom_cake.loadbalancer.server.port=80"
       # Forward Auth
       - "traefik.http.routers.custom_cake.middlewares=custom-cake-auth"
       - "traefik.http.middlewares.custom-cake-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
       - "traefik.http.middlewares.custom-cake-auth.forwardauth.trustForwardHeader=true"
     restart: always
-    ports:
-      - "5175"  
-    volumes:
-      - ./custom_cake_frontend:/app
-      - /app/node_modules
+    expose:
+      - "80"  
     environment:
       - VITE_API_BASE_URL=${API_BASE_URL}
       - VITE_APP_TITLE=Custom Cake
